@@ -36,7 +36,7 @@
     </dependency>
     <dependency>
       <groupId>io.github.saic-ismart-api</groupId>
-      <artifactId>saic-ismart-api</artifactId>
+      <artifactId>saic-ismart-cli</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
