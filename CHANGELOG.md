@@ -18,3 +18,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - added --saic-uri configuration option
   - automatically register for all alarm types
   - create Docker image
+  - create Debian package
