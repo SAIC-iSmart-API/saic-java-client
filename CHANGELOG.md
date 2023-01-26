@@ -14,3 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Support for A Better Routeplaner Telemetry update
 - Initial HTTP Gateway
 - Native MQTT Gateway Docker build
+- MQTT
+  - automatically register for all alarm types
+  - create Docker image
