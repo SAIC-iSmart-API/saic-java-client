@@ -9,7 +9,7 @@
 
   <name>SAIC Java API - Parent</name>
   <description>Implementation of the SAIC API in Java</description>
-  <url>https://github.com/tisoft/SAIC-API-Documentation</url>
+  <url>https://github.com/SAIC-iSmart-API/saic-java-client</url>
   <licenses>
     <license>
       <name>MIT License</name>
@@ -29,8 +29,8 @@
     <module>saic-java-mqtt-gateway</module>
   </modules>
   <scm>
-    <connection>scm:git:git:git@github.com:tisoft/SAIC-API-Documentation</connection>
-    <url>https://github.com/tisoft/SAIC-API-Documentation</url>
+    <connection>scm:git:git@github.com:SAIC-iSmart-API/saic-java-client.git</connection>
+    <url>https://github.com/SAIC-iSmart-API/saic-java-client</url>
   </scm>
   <distributionManagement>
     <repository>
