@@ -17,10 +17,13 @@ jobs:
     env:
       GITHUB_ACTOR: ${{ github.actor }}
       GITHUB_TOKEN: ${{ github.token }}
+      # usernames are stored as secrets, so we have all authentication information together as one type
       OSSRH_USERNAME: ${{ secrets.MAVEN_USERNAME }}
       OSSRH_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      # support dockerhub organizations. If none is present, use the dockerhub username
+      DOCKERHUB_ORGANIZATION: ${{ secrets.DOCKERHUB_ORGANIZATION == null && secrets.DOCKERHUB_USERNAME || secrets.DOCKERHUB_ORGANIZATION }}
 
     steps:
       - uses: actions/checkout@v3
@@ -46,8 +49,6 @@ jobs:
           servers: '[{"id": "ossrh", "username": "${env.OSSRH_USERNAME}", "password": "${env.OSSRH_PASSWORD}"},
                      {"id": "ghcr.io", "username": "${env.GITHUB_ACTOR}", "password": "${env.GITHUB_TOKEN}"},
                      {"id": "registry-1.docker.io", "username": "${env.DOCKERHUB_USERNAME}", "password": "${env.DOCKERHUB_PASSWORD}"}]'
-      - name: Show settings
-        run: cat ~/.m2/settings.xml
       - name: Deploy
         run: SIGN_KEY=${{ secrets.GPG_SECRET_KEYS }} SIGN_KEY_PASS=$(echo ${{ secrets.GPG_PASSPHRASE }} | base64 --decode) ./mvnw --no-transfer-progress -B ${MAVEN_PHASE} -Dgithub.repository=${{ github.repository }} -Dversioning.disable=false -Ddist.oci.registry=ghcr.io/${{ steps.lowercase-repository-owner.outputs.lowercase }}/
         env:

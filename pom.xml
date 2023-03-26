@@ -255,7 +255,7 @@
       <id>deploy-dockerhub</id>
       <activation>
         <property>
-          <name>env.DOCKERHUB_USERNAME</name>
+          <name>env.DOCKERHUB_ORGANIZATION</name>
         </property>
       </activation>
       <build>
@@ -274,7 +274,7 @@
                   <phase>${jib.phase}</phase>
                   <configuration>
                     <to>
-                      <image>${env.DOCKERHUB_USERNAME}/${dist.oci.name}:${dist.oci.tag}</image>
+                      <image>${env.DOCKERHUB_ORGANIZATION}/${dist.oci.name}:${dist.oci.tag}</image>
                     </to>
                   </configuration>
                 </execution>

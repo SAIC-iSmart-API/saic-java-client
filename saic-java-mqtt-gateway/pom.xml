@@ -17,7 +17,7 @@
 
   <properties>
     <!-- the name of the distributed artifact, defaults to the ${project.artifactId}-->
-    <dist.name>${project.artifactId}</dist.name>
+    <dist.name>saic-java-mqtt-gateway</dist.name>
 
     <!-- docker image name to use, without registry and tags, defaults to ${dist.name}-->
     <dist.oci.name>${dist.name}</dist.oci.name>
