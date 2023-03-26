@@ -72,9 +72,9 @@ jobs:
         with:
           body: ${{ steps.extract-release-notes.outputs.release_notes }}
           files: |
-            saic-java-api-cli/target/ismart-api-cli-*-full.jar
-            saic-java-api-gateway/target/ismart-api-gateway-*-full.jar
-            saic-java-mqtt-gateway/target/ismart-mqtt-gateway-*-full.jar
-            saic-java-mqtt-gateway/target/ismart-mqtt-gateway-*.deb
+            saic-java-api-cli/target/saic-ismart-cli-*-full.jar
+            saic-java-api-gateway/target/saic-ismart-http-gateway-*-full.jar
+            saic-java-mqtt-gateway/target/saic-ismart-mqtt-gateway-*-full.jar
+            saic-java-mqtt-gateway/target/saic-ismart-mqtt-gateway-*.deb
           prerelease: ${{ github.ref_type != 'tag' }}
           tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
