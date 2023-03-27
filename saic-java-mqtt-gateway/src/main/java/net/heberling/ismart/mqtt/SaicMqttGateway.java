@@ -222,40 +222,12 @@ public class SaicMqttGateway implements Callable<Integer> {
 
       var mqttAccountPrefix = "saic/" + saicUser;
 
-      MessageCoder<AlarmSwitchReq> alarmSwitchReqMessageCoder =
-          new MessageCoder<>(AlarmSwitchReq.class);
-
       // register for all known alarm types (not all might be actually delivered)
-      AlarmSwitchReq alarmSwitchReq = new AlarmSwitchReq();
-      alarmSwitchReq.setAlarmSwitchList(
-          Stream.of(MP_AlarmSettingType.EnumType.values())
-              .map(v -> createAlarmSwitch(v, true))
-              .collect(Collectors.toList()));
-      alarmSwitchReq.setPin(hashMD5("123456"));
-
-      Message<AlarmSwitchReq> alarmSwitchMessage =
-          alarmSwitchReqMessageCoder.initializeMessage(
-              loginResponseMessage.getBody().getUid(),
-              loginResponseMessage.getApplicationData().getToken(),
-              null,
-              "521",
-              513,
-              1,
-              alarmSwitchReq);
-      String alarmSwitchRequest = alarmSwitchReqMessageCoder.encodeRequest(alarmSwitchMessage);
-      String alarmSwitchResponse =
-          sendRequest(alarmSwitchRequest, saicUri.resolve("/TAP.Web/ota.mp"));
-      final MessageCoder<IASN1PreparedElement> alarmSwitchResMessageCoder =
-          new MessageCoder<>(IASN1PreparedElement.class);
-      Message<IASN1PreparedElement> alarmSwitchResponseMessage =
-          alarmSwitchResMessageCoder.decodeResponse(alarmSwitchResponse);
-
-      LOGGER.debug(toJSON(anonymized(alarmSwitchResMessageCoder, alarmSwitchResponseMessage)));
-
-      if (alarmSwitchResponseMessage.getBody().getErrorMessage() != null) {
-        throw new IllegalStateException(
-            new String(
-                alarmSwitchResponseMessage.getBody().getErrorMessage(), StandardCharsets.UTF_8));
+      for (MP_AlarmSettingType.EnumType type : MP_AlarmSettingType.EnumType.values()) {
+        registerAlarmMessage(
+            loginResponseMessage.getBody().getUid(),
+            loginResponseMessage.getApplicationData().getToken(),
+            type);
       }
 
       LOGGER.debug(
@@ -299,6 +271,40 @@ public class SaicMqttGateway implements Callable<Integer> {
         future.get();
       }
       return 0;
+    }
+  }
+
+  private void registerAlarmMessage(String uid, String token, MP_AlarmSettingType.EnumType type)
+      throws NoSuchAlgorithmException, IOException {
+    MessageCoder<AlarmSwitchReq> alarmSwitchReqMessageCoder =
+        new MessageCoder<>(AlarmSwitchReq.class);
+
+    AlarmSwitchReq alarmSwitchReq = new AlarmSwitchReq();
+    alarmSwitchReq.setAlarmSwitchList(
+        Stream.of(type).map(v -> createAlarmSwitch(v, true)).collect(Collectors.toList()));
+    alarmSwitchReq.setPin(hashMD5("123456"));
+
+    Message<AlarmSwitchReq> alarmSwitchMessage =
+        alarmSwitchReqMessageCoder.initializeMessage(
+            uid, token, null, "521", 513, 1, alarmSwitchReq);
+    String alarmSwitchRequest = alarmSwitchReqMessageCoder.encodeRequest(alarmSwitchMessage);
+    String alarmSwitchResponse =
+        sendRequest(alarmSwitchRequest, saicUri.resolve("/TAP.Web/ota.mp"));
+    final MessageCoder<IASN1PreparedElement> alarmSwitchResMessageCoder =
+        new MessageCoder<>(IASN1PreparedElement.class);
+    Message<IASN1PreparedElement> alarmSwitchResponseMessage =
+        alarmSwitchResMessageCoder.decodeResponse(alarmSwitchResponse);
+
+    LOGGER.debug(toJSON(anonymized(alarmSwitchResMessageCoder, alarmSwitchResponseMessage)));
+
+    if (alarmSwitchResponseMessage.getBody().getErrorMessage() != null) {
+      LOGGER.warn(
+          "Could not register for {} messages: {}",
+          type,
+          new String(
+              alarmSwitchResponseMessage.getBody().getErrorMessage(), StandardCharsets.UTF_8));
+    } else {
+      LOGGER.info("Registered for {} messages", type);
     }
   }
 
