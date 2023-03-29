@@ -24,3 +24,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - create Docker image
   - create Debian package
   - support `climate/remoteClimateState/set` with `off`, `on` and `front`
+  - support `doors/locked/set` with `true` and `false`

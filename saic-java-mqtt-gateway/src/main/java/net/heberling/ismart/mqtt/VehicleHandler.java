@@ -7,6 +7,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import net.heberling.ismart.abrp.ABRP;
@@ -240,74 +243,84 @@ public class VehicleHandler {
   private void sendACCommand(byte command, byte temperature)
       throws URISyntaxException, ExecutionException, InterruptedException, TimeoutException,
           MqttException, IOException {
+    sendCommand(
+        (byte) 6,
+        new TreeMap<>(
+            Map.of(19, new byte[] {command}, 20, new byte[] {temperature}, 255, new byte[] {0})));
+  }
+
+  private void sendCommand(byte type, SortedMap<Integer, byte[]> parameter)
+      throws URISyntaxException, ExecutionException, InterruptedException, TimeoutException,
+          MqttException, IOException {
     MessageCoder<OTA_RVCReq> otaRvcReqMessageCoder = new MessageCoder<>(OTA_RVCReq.class);
 
     // we send a command end expect the car to wake up
     vehicleState.notifyCarActivity(ZonedDateTime.now(), false);
 
     OTA_RVCReq req = new OTA_RVCReq();
-    req.setRvcReqType(new byte[] {6});
-    List<RvcReqParam> params = new ArrayList<>();
-    req.setRvcParams(params);
-    RvcReqParam param = new RvcReqParam();
-    param.setParamId(19);
-    param.setParamValue(new byte[] {command});
-    params.add(param);
-    param = new RvcReqParam();
-    param.setParamId(20);
-    param.setParamValue(new byte[] {temperature});
-    params.add(param);
-    param = new RvcReqParam();
-    param.setParamId(255);
-    param.setParamValue(new byte[] {0});
-    params.add(param);
+    req.setRvcReqType(new byte[] {type});
+    if (parameter != null && !parameter.isEmpty()) {
+      List<RvcReqParam> params = new ArrayList<>();
+      req.setRvcParams(params);
 
-    net.heberling.ismart.asn1.v2_1.Message<OTA_RVCReq> enableACRequest =
+      parameter.forEach(
+          (key, value) -> {
+            RvcReqParam param = new RvcReqParam();
+            param.setParamId(key);
+            param.setParamValue(value);
+            params.add(param);
+          });
+    }
+
+    net.heberling.ismart.asn1.v2_1.Message<OTA_RVCReq> sendCommandRequest =
         otaRvcReqMessageCoder.initializeMessage(uid, token, vinInfo.getVin(), "510", 25857, 1, req);
 
-    String enableACRequestMessage = otaRvcReqMessageCoder.encodeRequest(enableACRequest);
+    String sendCommandRequestMessage = otaRvcReqMessageCoder.encodeRequest(sendCommandRequest);
 
-    String enableACResponseMessage =
-        SaicMqttGateway.sendRequest(enableACRequestMessage, saicUri.resolve("/TAP.Web/ota.mpv21"));
+    String sendCommandResponseMessage =
+        SaicMqttGateway.sendRequest(
+            sendCommandRequestMessage, saicUri.resolve("/TAP.Web/ota.mpv21"));
 
     final MessageCoder<OTA_RVCStatus25857> otaRvcStatus25857MessageCoder =
         new MessageCoder<>(OTA_RVCStatus25857.class);
-    net.heberling.ismart.asn1.v2_1.Message<OTA_RVCStatus25857> enableACResponse =
-        otaRvcStatus25857MessageCoder.decodeResponse(enableACResponseMessage);
+    net.heberling.ismart.asn1.v2_1.Message<OTA_RVCStatus25857> sendCommandReqestMessage =
+        otaRvcStatus25857MessageCoder.decodeResponse(sendCommandResponseMessage);
 
     // ... use that to request the data again, until we have it
     // TODO: check for real errors (result!=0 and/or errorMessagePresent)
-    while (enableACResponse.getApplicationData() == null) {
-      if (enableACResponse.getBody().isErrorMessagePresent()) {
-        if (enableACResponse.getBody().getResult() == 2) {
+    while (sendCommandReqestMessage.getApplicationData() == null) {
+      if (sendCommandReqestMessage.getBody().isErrorMessagePresent()) {
+        if (sendCommandReqestMessage.getBody().getResult() == 2) {
           // TODO:
           // getBridgeHandler().relogin();
         }
-        throw new TimeoutException(new String(enableACResponse.getBody().getErrorMessage()));
+        throw new TimeoutException(
+            new String(sendCommandReqestMessage.getBody().getErrorMessage()));
       }
-      SaicMqttGateway.fillReserved(enableACRequest.getReserved());
+      SaicMqttGateway.fillReserved(sendCommandRequest.getReserved());
 
-      if (enableACResponse.getBody().getResult() == 0) {
+      if (sendCommandReqestMessage.getBody().getResult() == 0) {
         // we get an eventId back...
-        enableACRequest.getBody().setEventID(enableACResponse.getBody().getEventID());
+        sendCommandRequest.getBody().setEventID(sendCommandReqestMessage.getBody().getEventID());
       } else {
         // try a fresh eventId
-        enableACRequest.getBody().setEventID(0);
+        sendCommandRequest.getBody().setEventID(0);
       }
 
-      enableACRequestMessage = otaRvcReqMessageCoder.encodeRequest(enableACRequest);
+      sendCommandRequestMessage = otaRvcReqMessageCoder.encodeRequest(sendCommandRequest);
 
-      enableACResponseMessage =
+      sendCommandResponseMessage =
           SaicMqttGateway.sendRequest(
-              enableACRequestMessage, saicUri.resolve("/TAP.Web/ota.mpv21"));
+              sendCommandRequestMessage, saicUri.resolve("/TAP.Web/ota.mpv21"));
 
-      enableACResponse = otaRvcStatus25857MessageCoder.decodeResponse(enableACResponseMessage);
+      sendCommandReqestMessage =
+          otaRvcStatus25857MessageCoder.decodeResponse(sendCommandResponseMessage);
     }
 
     LOGGER.debug(
-        "Got A/C message: {}",
+        "Got SendCommand Response message: {}",
         SaicMqttGateway.toJSON(
-            SaicMqttGateway.anonymized(otaRvcStatus25857MessageCoder, enableACResponse)));
+            SaicMqttGateway.anonymized(otaRvcStatus25857MessageCoder, sendCommandReqestMessage)));
   }
 
   public void handleMQTTCommand(String topic, MqttMessage message) throws MqttException {
@@ -323,6 +336,31 @@ public class VehicleHandler {
               break;
             case "front":
               sendACCommand((byte) 5, (byte) 8);
+              break;
+            default:
+              throw new IOException("Unsupported payload " + message);
+          }
+          break;
+        case "doors/locked":
+          switch (message.toString().toLowerCase()) {
+            case "true":
+              sendCommand((byte) 0x01, new TreeMap<>(Map.of()));
+              break;
+            case "false":
+              sendCommand(
+                  (byte) 0x02,
+                  new TreeMap<>(
+                      Map.of(
+                          4,
+                          new byte[] {(byte) 0x00},
+                          5,
+                          new byte[] {(byte) 0x00},
+                          6,
+                          new byte[] {(byte) 0x00},
+                          7,
+                          new byte[] {(byte) 0x03},
+                          255,
+                          new byte[] {(byte) 0x00})));
               break;
             default:
               throw new IOException("Unsupported payload " + message);
