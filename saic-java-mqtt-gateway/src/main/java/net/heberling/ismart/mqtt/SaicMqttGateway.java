@@ -30,6 +30,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.heberling.ismart.asn1.AbstractMessage;
@@ -58,6 +60,8 @@ import org.bn.annotations.ASN1Enum;
 import org.bn.annotations.ASN1Sequence;
 import org.bn.coders.IASN1PreparedElement;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -195,6 +199,40 @@ public class SaicMqttGateway implements Callable<Integer> {
       }
       client.connect(options);
 
+      client.setCallback(
+          new MqttCallback() {
+            @Override
+            public void connectionLost(Throwable cause) {}
+
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+              LOGGER.debug("Got message for topic {}: {}", topic, message);
+              final Matcher matcher =
+                  Pattern.compile(".*/vehicles/([^/]*)/(.*)/set").matcher(topic);
+              if (matcher.matches()) {
+                new Thread(
+                        () -> {
+                          try {
+                            vehicleHandlerMap
+                                .get(matcher.group(1))
+                                .handleMQTTCommand(matcher.group(2), message);
+                          } catch (MqttException e) {
+                            LOGGER.error(
+                                "Could not handle message for topic {}: {}", topic, message, e);
+                          }
+                        })
+                    .start();
+              }
+            }
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken token) {}
+          });
+
+      var mqttAccountPrefix = "saic/" + saicUser;
+
+      client.subscribe(mqttAccountPrefix + "/vehicles/+/+/+/set");
+
       MessageCoder<MP_UserLoggingInReq> loginRequestMessageCoder =
           new MessageCoder<>(MP_UserLoggingInReq.class);
 
@@ -219,8 +257,6 @@ public class SaicMqttGateway implements Callable<Integer> {
 
       Message<MP_UserLoggingInResp> loginResponseMessage =
           new MessageCoder<>(MP_UserLoggingInResp.class).decodeResponse(loginResponse);
-
-      var mqttAccountPrefix = "saic/" + saicUser;
 
       // register for all known alarm types (not all might be actually delivered)
       for (MP_AlarmSettingType.EnumType type : MP_AlarmSettingType.EnumType.values()) {

@@ -42,13 +42,12 @@ public class VehicleState {
                     .getExtendedData2()
                 >= 1;
 
-    if (isCharging
-        || engineRunning
-        || vehicleStatusResponseMessage
-                .getApplicationData()
-                .getBasicVehicleStatus()
-                .getRemoteClimateStatus()
-            > 0) {
+    final Integer remoteClimateStatus =
+        vehicleStatusResponseMessage
+            .getApplicationData()
+            .getBasicVehicleStatus()
+            .getRemoteClimateStatus();
+    if (isCharging || engineRunning || remoteClimateStatus > 0) {
       notifyCarActivity(ZonedDateTime.now(), false);
     }
 
@@ -287,14 +286,7 @@ public class VehicleState {
     msg.setRetained(true);
     client.publish(mqttVINPrefix + "/tyres/rearRightPressure", msg);
 
-    msg =
-        new MqttMessage(
-            String.valueOf(
-                    vehicleStatusResponseMessage
-                        .getApplicationData()
-                        .getBasicVehicleStatus()
-                        .getRemoteClimateStatus())
-                .getBytes(StandardCharsets.UTF_8));
+    msg = new MqttMessage(toRemoteClimate(remoteClimateStatus).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
     client.publish(mqttVINPrefix + "/climate/remoteClimateState", msg);
@@ -340,6 +332,19 @@ public class VehicleState {
       msg.setQos(0);
       msg.setRetained(true);
       client.publish(mqttVINPrefix + "/drivetrain/range", msg);
+    }
+  }
+
+  private static String toRemoteClimate(Integer remoteClimateStatus) {
+    switch (remoteClimateStatus) {
+      case 0:
+        return "off";
+      case 2:
+        return "on";
+      case 5:
+        return "front";
+      default:
+        return "unknown (" + remoteClimateStatus + ")";
     }
   }
 

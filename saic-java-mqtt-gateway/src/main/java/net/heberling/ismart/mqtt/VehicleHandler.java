@@ -2,13 +2,21 @@ package net.heberling.ismart.mqtt;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import net.heberling.ismart.abrp.ABRP;
 import net.heberling.ismart.asn1.v1_1.entity.VinInfo;
 import net.heberling.ismart.asn1.v2_1.MessageCoder;
+import net.heberling.ismart.asn1.v2_1.entity.OTA_RVCReq;
+import net.heberling.ismart.asn1.v2_1.entity.OTA_RVCStatus25857;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusReq;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusResp25857;
+import net.heberling.ismart.asn1.v2_1.entity.RvcReqParam;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
 import org.bn.coders.IASN1PreparedElement;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
@@ -227,5 +235,117 @@ public class VehicleHandler {
 
   public void notifyMessage(SaicMessage message) throws MqttException {
     vehicleState.notifyMessage(message);
+  }
+
+  private void sendACCommand(byte command, byte temperature)
+      throws URISyntaxException, ExecutionException, InterruptedException, TimeoutException,
+          MqttException, IOException {
+    MessageCoder<OTA_RVCReq> otaRvcReqMessageCoder = new MessageCoder<>(OTA_RVCReq.class);
+
+    // we send a command end expect the car to wake up
+    vehicleState.notifyCarActivity(ZonedDateTime.now(), false);
+
+    OTA_RVCReq req = new OTA_RVCReq();
+    req.setRvcReqType(new byte[] {6});
+    List<RvcReqParam> params = new ArrayList<>();
+    req.setRvcParams(params);
+    RvcReqParam param = new RvcReqParam();
+    param.setParamId(19);
+    param.setParamValue(new byte[] {command});
+    params.add(param);
+    param = new RvcReqParam();
+    param.setParamId(20);
+    param.setParamValue(new byte[] {temperature});
+    params.add(param);
+    param = new RvcReqParam();
+    param.setParamId(255);
+    param.setParamValue(new byte[] {0});
+    params.add(param);
+
+    net.heberling.ismart.asn1.v2_1.Message<OTA_RVCReq> enableACRequest =
+        otaRvcReqMessageCoder.initializeMessage(uid, token, vinInfo.getVin(), "510", 25857, 1, req);
+
+    String enableACRequestMessage = otaRvcReqMessageCoder.encodeRequest(enableACRequest);
+
+    String enableACResponseMessage =
+        SaicMqttGateway.sendRequest(enableACRequestMessage, saicUri.resolve("/TAP.Web/ota.mpv21"));
+
+    final MessageCoder<OTA_RVCStatus25857> otaRvcStatus25857MessageCoder =
+        new MessageCoder<>(OTA_RVCStatus25857.class);
+    net.heberling.ismart.asn1.v2_1.Message<OTA_RVCStatus25857> enableACResponse =
+        otaRvcStatus25857MessageCoder.decodeResponse(enableACResponseMessage);
+
+    // ... use that to request the data again, until we have it
+    // TODO: check for real errors (result!=0 and/or errorMessagePresent)
+    while (enableACResponse.getApplicationData() == null) {
+      if (enableACResponse.getBody().isErrorMessagePresent()) {
+        if (enableACResponse.getBody().getResult() == 2) {
+          // TODO:
+          // getBridgeHandler().relogin();
+        }
+        throw new TimeoutException(new String(enableACResponse.getBody().getErrorMessage()));
+      }
+      SaicMqttGateway.fillReserved(enableACRequest.getReserved());
+
+      if (enableACResponse.getBody().getResult() == 0) {
+        // we get an eventId back...
+        enableACRequest.getBody().setEventID(enableACResponse.getBody().getEventID());
+      } else {
+        // try a fresh eventId
+        enableACRequest.getBody().setEventID(0);
+      }
+
+      enableACRequestMessage = otaRvcReqMessageCoder.encodeRequest(enableACRequest);
+
+      enableACResponseMessage =
+          SaicMqttGateway.sendRequest(
+              enableACRequestMessage, saicUri.resolve("/TAP.Web/ota.mpv21"));
+
+      enableACResponse = otaRvcStatus25857MessageCoder.decodeResponse(enableACResponseMessage);
+    }
+
+    LOGGER.debug(
+        "Got A/C message: {}",
+        SaicMqttGateway.toJSON(
+            SaicMqttGateway.anonymized(otaRvcStatus25857MessageCoder, enableACResponse)));
+  }
+
+  public void handleMQTTCommand(String topic, MqttMessage message) throws MqttException {
+    try {
+      switch (topic) {
+        case "climate/remoteClimateState":
+          switch (message.toString().toLowerCase()) {
+            case "off":
+              sendACCommand((byte) 0, (byte) 0);
+              break;
+            case "on":
+              sendACCommand((byte) 2, (byte) 8);
+              break;
+            case "front":
+              sendACCommand((byte) 5, (byte) 8);
+              break;
+            default:
+              throw new IOException("Unsupported payload " + message);
+          }
+          break;
+        default:
+          throw new IOException("Unsupported topic " + topic);
+      }
+      MqttMessage msg = new MqttMessage("Success".getBytes(StandardCharsets.UTF_8));
+      msg.setQos(0);
+      msg.setRetained(false);
+      client.publish(mqttVINPrefix + "/" + topic + "/result", msg);
+
+    } catch (URISyntaxException
+        | ExecutionException
+        | InterruptedException
+        | TimeoutException
+        | IOException e) {
+      MqttMessage msg =
+          new MqttMessage(("Command failed. " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
+      msg.setQos(0);
+      msg.setRetained(false);
+      client.publish(mqttVINPrefix + "/" + topic + "/result", msg);
+    }
   }
 }
