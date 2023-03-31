@@ -1,4 +1,4 @@
-name: Java CI with Maven - Deploy Snapshot
+name: Java CI with Maven - Deploy
 
 on:
   push:
