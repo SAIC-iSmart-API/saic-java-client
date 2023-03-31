@@ -20,6 +20,8 @@ public class VehicleState {
 
   private ZonedDateTime lastCarActivity;
   private ZonedDateTime lastVehicleMessage;
+  // treat HV battery as active, if we don't have any other information
+  private boolean hvBatteryActive = true;
 
   public VehicleState(IMqttClient client, String mqttVINPrefix) {
     this.client = client;
@@ -47,11 +49,18 @@ public class VehicleState {
             .getApplicationData()
             .getBasicVehicleStatus()
             .getRemoteClimateStatus();
-    if (isCharging || engineRunning || remoteClimateStatus > 0) {
-      notifyCarActivity(ZonedDateTime.now(), false);
+    hvBatteryActive = isCharging || engineRunning || remoteClimateStatus > 0;
+    MqttMessage msg =
+        new MqttMessage(SaicMqttGateway.toJSON(hvBatteryActive).getBytes(StandardCharsets.UTF_8));
+    msg.setQos(0);
+    msg.setRetained(true);
+    client.publish(mqttVINPrefix + "/drivetrain/hvBatteryActive", msg);
+
+    if (hvBatteryActive) {
+      notifyCarActivityTime(ZonedDateTime.now(), false);
     }
 
-    MqttMessage msg =
+    msg =
         new MqttMessage(
             SaicMqttGateway.toJSON(vehicleStatusResponseMessage).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
@@ -419,7 +428,7 @@ public class VehicleState {
     client.publish(mqttVINPrefix + "/drivetrain/soc", msg);
   }
 
-  public void notifyCarActivity(ZonedDateTime now, boolean force) throws MqttException {
+  public void notifyCarActivityTime(ZonedDateTime now, boolean force) throws MqttException {
     // if the car activity changed, notify the channel
     if (lastCarActivity == null || force || lastCarActivity.isBefore(now)) {
       lastCarActivity = now;
@@ -442,11 +451,12 @@ public class VehicleState {
       lastVehicleMessage = message.getMessageTime();
     }
     // something happened, better check the vehicle state
-    notifyCarActivity(message.getMessageTime(), false);
+    notifyCarActivityTime(message.getMessageTime(), false);
   }
 
   public boolean isRecentlyActive() {
-    return lastCarActivity.isAfter(ZonedDateTime.now().minus(15, ChronoUnit.MINUTES));
+    return hvBatteryActive
+        || lastCarActivity.isAfter(ZonedDateTime.now().minus(15, ChronoUnit.MINUTES));
   }
 
   public void configure(VinInfo vinInfo) throws MqttException {

@@ -63,7 +63,7 @@ public class VehicleHandler {
   void handleVehicle() throws MqttException, IOException {
     vehicleState.configure(vinInfo);
     // we just got started, force some updates
-    vehicleState.notifyCarActivity(ZonedDateTime.now(), true);
+    vehicleState.notifyCarActivityTime(ZonedDateTime.now(), true);
     while (true) {
       if (vehicleState.isRecentlyActive()) {
         OTA_RVMVehicleStatusResp25857 vehicleStatus =
@@ -255,7 +255,7 @@ public class VehicleHandler {
     MessageCoder<OTA_RVCReq> otaRvcReqMessageCoder = new MessageCoder<>(OTA_RVCReq.class);
 
     // we send a command end expect the car to wake up
-    vehicleState.notifyCarActivity(ZonedDateTime.now(), false);
+    vehicleState.notifyCarActivityTime(ZonedDateTime.now(), false);
 
     OTA_RVCReq req = new OTA_RVCReq();
     req.setRvcReqType(new byte[] {type});
