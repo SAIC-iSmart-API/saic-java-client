@@ -50,18 +50,9 @@ public class VehicleState {
             .getBasicVehicleStatus()
             .getRemoteClimateStatus();
 
-    hvBatteryActive = isCharging || engineRunning || remoteClimateStatus > 0;
+    setHVBatteryActive(isCharging || engineRunning || remoteClimateStatus > 0);
+
     MqttMessage msg =
-        new MqttMessage(SaicMqttGateway.toJSON(hvBatteryActive).getBytes(StandardCharsets.UTF_8));
-    msg.setQos(0);
-    msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/drivetrain/hvBatteryActive", msg);
-
-    if (hvBatteryActive) {
-      notifyCarActivityTime(ZonedDateTime.now(), false);
-    }
-
-    msg =
         new MqttMessage(
             SaicMqttGateway.toJSON(vehicleStatusResponseMessage).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
@@ -315,7 +306,7 @@ public class VehicleState {
 
     if (vehicleStatusResponseMessage.getApplicationData().getBasicVehicleStatus().getMileage()
         > 0) {
-      // sometimes milage is 0, ignore such values
+      // sometimes mileage is 0, ignore such values
       msg =
           new MqttMessage(
               String.valueOf(
@@ -345,7 +336,8 @@ public class VehicleState {
     }
 
     msg =
-            new MqttMessage(SaicMqttGateway.toJSON(ZonedDateTime.now()).getBytes(StandardCharsets.UTF_8));
+        new MqttMessage(
+            SaicMqttGateway.toJSON(ZonedDateTime.now()).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
     client.publish(mqttVINPrefix + "/refresh/lastVehicleState", msg);
@@ -435,7 +427,8 @@ public class VehicleState {
     client.publish(mqttVINPrefix + "/drivetrain/soc", msg);
 
     msg =
-            new MqttMessage(SaicMqttGateway.toJSON(ZonedDateTime.now()).getBytes(StandardCharsets.UTF_8));
+        new MqttMessage(
+            SaicMqttGateway.toJSON(ZonedDateTime.now()).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
     client.publish(mqttVINPrefix + "/refresh/lastChargeState", msg);
@@ -474,6 +467,13 @@ public class VehicleState {
 
   public void setHVBatteryActive(boolean hvBatteryActive) throws MqttException {
     this.hvBatteryActive = hvBatteryActive;
+
+    MqttMessage msg =
+        new MqttMessage(SaicMqttGateway.toJSON(hvBatteryActive).getBytes(StandardCharsets.UTF_8));
+    msg.setQos(0);
+    msg.setRetained(true);
+    client.publish(mqttVINPrefix + "/drivetrain/hvBatteryActive", msg);
+
     if (hvBatteryActive) {
       notifyCarActivityTime(ZonedDateTime.now(), true);
     }
