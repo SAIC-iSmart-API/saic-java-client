@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MQTT
   - log ABRP errors, don't fail the whole thread
   - keep last `drivetrain/hvBatteryActive` state until it's updated from the API
+  - allow setting the `drivetrain/hvBatteryActive/set` state to force updates
 
 ## [0.1.0] - 2023-03-29
 ### Added

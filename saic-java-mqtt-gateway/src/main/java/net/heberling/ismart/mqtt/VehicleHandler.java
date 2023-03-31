@@ -326,6 +326,18 @@ public class VehicleHandler {
   public void handleMQTTCommand(String topic, MqttMessage message) throws MqttException {
     try {
       switch (topic) {
+        case "drivetrain/hvBatteryActive":
+          switch (message.toString().toLowerCase()) {
+            case "true":
+              vehicleState.setHVBatteryActive(true);
+              break;
+            case "false":
+              vehicleState.setHVBatteryActive(false);
+              break;
+            default:
+              throw new IOException("Unsupported payload " + message);
+          }
+          break;
         case "climate/remoteClimateState":
           switch (message.toString().toLowerCase()) {
             case "off":

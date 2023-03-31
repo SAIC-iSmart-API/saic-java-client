@@ -49,6 +49,7 @@ public class VehicleState {
             .getApplicationData()
             .getBasicVehicleStatus()
             .getRemoteClimateStatus();
+
     hvBatteryActive = isCharging || engineRunning || remoteClimateStatus > 0;
     MqttMessage msg =
         new MqttMessage(SaicMqttGateway.toJSON(hvBatteryActive).getBytes(StandardCharsets.UTF_8));
@@ -457,6 +458,13 @@ public class VehicleState {
   public boolean isRecentlyActive() {
     return hvBatteryActive
         || lastCarActivity.isAfter(ZonedDateTime.now().minus(15, ChronoUnit.MINUTES));
+  }
+
+  public void setHVBatteryActive(boolean hvBatteryActive) throws MqttException {
+    this.hvBatteryActive = hvBatteryActive;
+    if (hvBatteryActive) {
+      notifyCarActivityTime(ZonedDateTime.now(), true);
+    }
   }
 
   public void configure(VinInfo vinInfo) throws MqttException {
