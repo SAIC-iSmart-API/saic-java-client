@@ -343,6 +343,12 @@ public class VehicleState {
       msg.setRetained(true);
       client.publish(mqttVINPrefix + "/drivetrain/range", msg);
     }
+
+    msg =
+            new MqttMessage(SaicMqttGateway.toJSON(ZonedDateTime.now()).getBytes(StandardCharsets.UTF_8));
+    msg.setQos(0);
+    msg.setRetained(true);
+    client.publish(mqttVINPrefix + "/refresh/lastVehicleState", msg);
   }
 
   private static String toRemoteClimate(Integer remoteClimateStatus) {
@@ -427,6 +433,12 @@ public class VehicleState {
     msg.setQos(0);
     msg.setRetained(true);
     client.publish(mqttVINPrefix + "/drivetrain/soc", msg);
+
+    msg =
+            new MqttMessage(SaicMqttGateway.toJSON(ZonedDateTime.now()).getBytes(StandardCharsets.UTF_8));
+    msg.setQos(0);
+    msg.setRetained(true);
+    client.publish(mqttVINPrefix + "/refresh/lastChargeState", msg);
   }
 
   public void notifyCarActivityTime(ZonedDateTime now, boolean force) throws MqttException {
