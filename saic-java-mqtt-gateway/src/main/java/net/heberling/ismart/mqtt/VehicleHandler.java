@@ -325,6 +325,9 @@ public class VehicleHandler {
 
   public void handleMQTTCommand(String topic, MqttMessage message) throws MqttException {
     try {
+      if (message.isRetained()) {
+        throw new IOException("Message may not be retained");
+      }
       switch (topic) {
         case "drivetrain/hvBatteryActive":
           switch (message.toString().toLowerCase()) {
