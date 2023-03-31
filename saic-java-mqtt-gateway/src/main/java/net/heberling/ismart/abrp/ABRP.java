@@ -26,8 +26,7 @@ public class ABRP {
       String abrpApiKey,
       String abrpUserToken,
       OTA_RVMVehicleStatusResp25857 vehicleStatus,
-      OTA_ChrgMangDataResp chargeStatus)
-      throws IOException {
+      OTA_ChrgMangDataResp chargeStatus) {
     try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
       // Request parameters and other properties.
       HashMap<String, Object> map = new HashMap<>();
@@ -136,6 +135,9 @@ public class ABRP {
       String response = httpclient.execute(httppost, responseHandler);
       LOGGER.debug("ABRP response: {}", response);
       return response;
+    } catch (IOException e) {
+      LOGGER.error("Could not update ABRP", e);
+      return "Could not update ABRP: " + e.getMessage();
     }
   }
 }
