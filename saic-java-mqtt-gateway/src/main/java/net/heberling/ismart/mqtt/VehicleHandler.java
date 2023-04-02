@@ -12,6 +12,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import net.heberling.ismart.Client;
 import net.heberling.ismart.abrp.ABRP;
 import net.heberling.ismart.asn1.v1_1.entity.VinInfo;
 import net.heberling.ismart.asn1.v2_1.MessageCoder;
@@ -109,7 +110,7 @@ public class VehicleHandler {
         otaRvmVehicleStatusReqMessageCoder.encodeRequest(vehicleStatusRequestMessage);
 
     String vehicleStatusResponse =
-        SaicMqttGateway.sendRequest(vehicleStatusRequest, saicUri.resolve("/TAP.Web/ota.mpv21"));
+        Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv21"), vehicleStatusRequest);
 
     net.heberling.ismart.asn1.v2_1.Message<OTA_RVMVehicleStatusResp25857>
         vehicleStatusResponseMessage =
@@ -141,7 +142,7 @@ public class VehicleHandler {
           otaRvmVehicleStatusReqMessageCoder.encodeRequest(vehicleStatusRequestMessage);
 
       vehicleStatusResponse =
-          SaicMqttGateway.sendRequest(vehicleStatusRequest, saicUri.resolve("/TAP.Web/ota.mpv21"));
+          Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv21"), vehicleStatusRequest);
 
       vehicleStatusResponseMessage =
           new net.heberling.ismart.asn1.v2_1.MessageCoder<>(OTA_RVMVehicleStatusResp25857.class)
@@ -178,8 +179,7 @@ public class VehicleHandler {
                 chargingStatusRequestMessageEncoder, chargingStatusMessage)));
 
     String chargingStatusResponse =
-        SaicMqttGateway.sendRequest(
-            chargingStatusRequestMessage, saicUri.resolve("/TAP.Web/ota.mpv30"));
+        Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv30"), chargingStatusRequestMessage);
 
     net.heberling.ismart.asn1.v3_0.Message<OTA_ChrgMangDataResp> chargingStatusResponseMessage =
         new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgMangDataResp.class)
@@ -218,8 +218,7 @@ public class VehicleHandler {
           chargingStatusRequestMessageEncoder.encodeRequest(chargingStatusMessage);
 
       chargingStatusResponse =
-          SaicMqttGateway.sendRequest(
-              chargingStatusRequestMessage, saicUri.resolve("/TAP.Web/ota.mpv30"));
+          Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv30"), chargingStatusRequestMessage);
 
       chargingStatusResponseMessage =
           new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgMangDataResp.class)
@@ -278,8 +277,7 @@ public class VehicleHandler {
     String sendCommandRequestMessage = otaRvcReqMessageCoder.encodeRequest(sendCommandRequest);
 
     String sendCommandResponseMessage =
-        SaicMqttGateway.sendRequest(
-            sendCommandRequestMessage, saicUri.resolve("/TAP.Web/ota.mpv21"));
+        Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv21"), sendCommandRequestMessage);
 
     final MessageCoder<OTA_RVCStatus25857> otaRvcStatus25857MessageCoder =
         new MessageCoder<>(OTA_RVCStatus25857.class);
@@ -310,8 +308,7 @@ public class VehicleHandler {
       sendCommandRequestMessage = otaRvcReqMessageCoder.encodeRequest(sendCommandRequest);
 
       sendCommandResponseMessage =
-          SaicMqttGateway.sendRequest(
-              sendCommandRequestMessage, saicUri.resolve("/TAP.Web/ota.mpv21"));
+          Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv21"), sendCommandRequestMessage);
 
       sendCommandReqestMessage =
           otaRvcStatus25857MessageCoder.decodeResponse(sendCommandResponseMessage);

@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import net.heberling.ismart.Client;
 import net.heberling.ismart.asn1.v1_1.Message;
 import net.heberling.ismart.asn1.v1_1.MessageCoder;
 import net.heberling.ismart.asn1.v1_1.entity.MessageListReq;
@@ -60,7 +61,7 @@ class MessageHandler implements Runnable {
 
     try {
       String messageListResponse =
-          SaicMqttGateway.sendRequest(messageListRequest, saicUri.resolve("/TAP.Web/ota.mp"));
+          Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mp"), messageListRequest);
 
       Message<MessageListResp> messageListResponseMessage =
           new MessageCoder<>(MessageListResp.class).decodeResponse(messageListResponse);

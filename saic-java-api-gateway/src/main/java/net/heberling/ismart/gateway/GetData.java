@@ -1,5 +1,7 @@
 package net.heberling.ismart.gateway;
 
+import static net.heberling.ismart.Client.sendRequest;
+
 import com.owlike.genson.Context;
 import com.owlike.genson.Converter;
 import com.owlike.genson.Genson;
@@ -11,6 +13,7 @@ import com.owlike.genson.stream.ObjectWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.Random;
 import net.heberling.ismart.asn1.AbstractMessage;
 import net.heberling.ismart.asn1.v1_1.Message;
@@ -18,17 +21,6 @@ import net.heberling.ismart.asn1.v1_1.MessageCoder;
 import net.heberling.ismart.asn1.v1_1.entity.MP_UserLoggingInReq;
 import net.heberling.ismart.asn1.v1_1.entity.MP_UserLoggingInResp;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
-import org.apache.hc.client5.http.ClientProtocolException;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.ParseException;
-import org.apache.hc.core5.http.io.HttpClientResponseHandler;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.bn.annotations.ASN1Enum;
 import org.bn.coders.IASN1PreparedElement;
 
@@ -59,7 +51,8 @@ public class GetData {
     jsonOuput[0] = toJSON(loginRequestMessage);
 
     System.out.println("Sending login request...");
-    String loginResponse = sendRequest(loginRequest, "https://tap-eu.soimt.com/TAP.Web/ota.mp");
+    String loginResponse =
+        sendRequest(URI.create("https://tap-eu.soimt.com/TAP.Web/ota.mp"), loginRequest);
 
     Message<MP_UserLoggingInResp> loginResponseMessage =
         new MessageCoder<>(MP_UserLoggingInResp.class).decodeResponse(loginResponse);
@@ -96,7 +89,8 @@ public class GetData {
     System.out.println("Sending initial chargingStatusRequestMessage to wake the car...");
 
     String chargingStatusResponse =
-        sendRequest(chargingStatusRequestMessage, "https://tap-eu.soimt.com/TAP.Web/ota.mpv30");
+        sendRequest(
+            URI.create("https://tap-eu.soimt.com/TAP.Web/ota.mpv30"), chargingStatusRequestMessage);
 
     net.heberling.ismart.asn1.v3_0.Message<OTA_ChrgMangDataResp> chargingStatusResponseMessage =
         new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgMangDataResp.class)
@@ -135,7 +129,9 @@ public class GetData {
               .encodeRequest(chargingStatusMessage);
 
       chargingStatusResponse =
-          sendRequest(chargingStatusRequestMessage, "https://tap-eu.soimt.com/TAP.Web/ota.mpv30");
+          sendRequest(
+              URI.create("https://tap-eu.soimt.com/TAP.Web/ota.mpv30"),
+              chargingStatusRequestMessage);
 
       chargingStatusResponseMessage =
           new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgMangDataResp.class)
@@ -158,32 +154,6 @@ public class GetData {
         chargingStatusMessage.getReserved(),
         0,
         16);
-  }
-
-  private static String sendRequest(String request, String endpoint) throws IOException {
-    try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-      HttpPost httppost = new HttpPost(endpoint);
-      // Request parameters and other properties.
-      httppost.setEntity(new StringEntity(request, ContentType.TEXT_HTML));
-
-      // Execute and get the response.
-      // Create a custom response handler
-      HttpClientResponseHandler<String> responseHandler =
-          response -> {
-            final int status = response.getCode();
-            if (status >= HttpStatus.SC_SUCCESS && status < HttpStatus.SC_REDIRECTION) {
-              final HttpEntity entity = response.getEntity();
-              try {
-                return entity != null ? EntityUtils.toString(entity) : null;
-              } catch (final ParseException ex) {
-                throw new ClientProtocolException(ex);
-              }
-            } else {
-              throw new ClientProtocolException("Unexpected response status: " + status);
-            }
-          };
-      return httpclient.execute(httppost, responseHandler);
-    }
   }
 
   public static <

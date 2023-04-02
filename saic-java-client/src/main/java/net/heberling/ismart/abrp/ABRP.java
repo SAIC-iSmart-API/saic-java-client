@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusResp25857;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
-import net.heberling.ismart.mqtt.SaicMqttGateway;
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -100,7 +100,13 @@ public class ABRP {
           "token="
               + abrpUserToken
               + "&tlm="
-              + URLEncoder.encode(SaicMqttGateway.toJSON(map), StandardCharsets.UTF_8);
+              + URLEncoder.encode(
+                  "{"
+                      + map.entrySet().stream()
+                          .map(e -> "\"" + e.getKey() + "\": " + e.getValue())
+                          .collect(Collectors.joining(", "))
+                      + "}",
+                  StandardCharsets.UTF_8);
       LOGGER.debug("ABRP request: {}", request);
 
       HttpGet httppost =

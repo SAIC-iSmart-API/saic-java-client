@@ -34,6 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import net.heberling.ismart.Client;
 import net.heberling.ismart.asn1.AbstractMessage;
 import net.heberling.ismart.asn1.AbstractMessageCoder;
 import net.heberling.ismart.asn1.Anonymizer;
@@ -45,17 +46,6 @@ import net.heberling.ismart.asn1.v1_1.entity.MP_AlarmSettingType;
 import net.heberling.ismart.asn1.v1_1.entity.MP_UserLoggingInReq;
 import net.heberling.ismart.asn1.v1_1.entity.MP_UserLoggingInResp;
 import net.heberling.ismart.cli.UTF8StringObjectWriter;
-import org.apache.hc.client5.http.ClientProtocolException;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.ParseException;
-import org.apache.hc.core5.http.io.HttpClientResponseHandler;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.bn.annotations.ASN1Enum;
 import org.bn.annotations.ASN1Sequence;
 import org.bn.coders.IASN1PreparedElement;
@@ -253,7 +243,7 @@ public class SaicMqttGateway implements Callable<Integer> {
 
       LOGGER.debug(toJSON(anonymized(loginRequestMessageCoder, loginRequestMessage)));
 
-      String loginResponse = sendRequest(loginRequest, saicUri.resolve("/TAP.Web/ota.mp"));
+      String loginResponse = Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mp"), loginRequest);
 
       Message<MP_UserLoggingInResp> loginResponseMessage =
           new MessageCoder<>(MP_UserLoggingInResp.class).decodeResponse(loginResponse);
@@ -325,7 +315,7 @@ public class SaicMqttGateway implements Callable<Integer> {
             uid, token, null, "521", 513, 1, alarmSwitchReq);
     String alarmSwitchRequest = alarmSwitchReqMessageCoder.encodeRequest(alarmSwitchMessage);
     String alarmSwitchResponse =
-        sendRequest(alarmSwitchRequest, saicUri.resolve("/TAP.Web/ota.mp"));
+        Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mp"), alarmSwitchRequest);
     final MessageCoder<IASN1PreparedElement> alarmSwitchResMessageCoder =
         new MessageCoder<>(IASN1PreparedElement.class);
     Message<IASN1PreparedElement> alarmSwitchResponseMessage =
@@ -421,32 +411,6 @@ public class SaicMqttGateway implements Callable<Integer> {
         reservedBytes,
         0,
         16);
-  }
-
-  static String sendRequest(String request, URI endpoint) throws IOException {
-    try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-      HttpPost httppost = new HttpPost(endpoint);
-      // Request parameters and other properties.
-      httppost.setEntity(new StringEntity(request, ContentType.TEXT_HTML));
-
-      // Execute and get the response.
-      // Create a custom response handler
-      HttpClientResponseHandler<String> responseHandler =
-          response -> {
-            final int status = response.getCode();
-            if (status >= HttpStatus.SC_SUCCESS && status < HttpStatus.SC_REDIRECTION) {
-              final HttpEntity entity = response.getEntity();
-              try {
-                return entity != null ? EntityUtils.toString(entity) : null;
-              } catch (final ParseException ex) {
-                throw new ClientProtocolException(ex);
-              }
-            } else {
-              throw new ClientProtocolException("Unexpected response status: " + status);
-            }
-          };
-      return httpclient.execute(httppost, responseHandler);
-    }
   }
 
   public static String toJSON(Object message) {

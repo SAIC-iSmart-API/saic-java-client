@@ -21,6 +21,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.github.saic-ismart-api</groupId>
+      <artifactId>saic-ismart-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>net.heberling.binarynotes</groupId>
       <artifactId>binarynotes</artifactId>
     </dependency>
