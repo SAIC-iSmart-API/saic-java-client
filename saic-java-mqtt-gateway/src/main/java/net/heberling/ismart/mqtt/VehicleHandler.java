@@ -66,7 +66,7 @@ public class VehicleHandler {
     // we just got started, force some updates
     vehicleState.notifyCarActivityTime(ZonedDateTime.now(), true);
     while (true) {
-      if (vehicleState.isRecentlyActive()) {
+      if (vehicleState.isRecentlyActive() && vehicleState.isAuxiliaryBatteryHealthy()) {
         OTA_RVMVehicleStatusResp25857 vehicleStatus =
             updateVehicleStatus(uid, token, vinInfo.getVin());
         OTA_ChrgMangDataResp chargeStatus = updateChargeStatus(uid, token, vinInfo.getVin());

@@ -12,9 +12,13 @@ import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class VehicleState {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(VehicleState.class);
+  public static final double MINIMUM_AUX_BATTERY_VOLTAGE = 12f;
   private final IMqttClient client;
   private final String mqttVINPrefix;
 
@@ -22,6 +26,8 @@ public class VehicleState {
   private ZonedDateTime lastVehicleMessage;
   // treat HV battery as active, if we don't have any other information
   private boolean hvBatteryActive = true;
+
+  private boolean auxiliaryBatteryHealthy = true;
 
   public VehicleState(IMqttClient client, String mqttVINPrefix) {
     this.client = client;
@@ -112,6 +118,12 @@ public class VehicleState {
     msg.setQos(0);
     msg.setRetained(true);
     client.publish(mqttVINPrefix + "/drivetrain/auxiliaryBatteryVoltage", msg);
+
+    setAuxiliaryBatteryHealthy(vehicleStatusResponseMessage
+            .getApplicationData()
+            .getBasicVehicleStatus()
+            .getBatteryVoltage()
+            / 10.d);
 
     msg =
         new MqttMessage(
@@ -476,6 +488,22 @@ public class VehicleState {
 
     if (hvBatteryActive) {
       notifyCarActivityTime(ZonedDateTime.now(), true);
+    }
+  }
+
+  public boolean isAuxiliaryBatteryHealthy() {
+    return hvBatteryActive || auxiliaryBatteryHealthy;
+  }
+
+  public void setAuxiliaryBatteryHealthy(double batteryVoltage) {
+    if(batteryVoltage < MINIMUM_AUX_BATTERY_VOLTAGE) {
+      if(auxiliaryBatteryHealthy) {
+        LOGGER.warn("Auxiliary Battery falling below " + MINIMUM_AUX_BATTERY_VOLTAGE + " threshold, pausing polling until HV Battery gets active...");
+      }
+      auxiliaryBatteryHealthy = false;
+    }
+    else {
+      auxiliaryBatteryHealthy = true;
     }
   }
 
