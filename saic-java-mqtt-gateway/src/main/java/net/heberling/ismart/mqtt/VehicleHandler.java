@@ -42,6 +42,8 @@ public class VehicleHandler {
 
   private final VehicleState vehicleState;
 
+  private final long pollingInterval;
+
   public VehicleHandler(
       SaicMqttGateway saicMqttGateway,
       IMqttClient client,
@@ -49,7 +51,8 @@ public class VehicleHandler {
       String uid,
       String token,
       String mqttAccountPrefix,
-      VinInfo vinInfo) {
+      VinInfo vinInfo,
+      long pollingInterval) {
 
     this.saicMqttGateway = saicMqttGateway;
     this.client = client;
@@ -59,6 +62,7 @@ public class VehicleHandler {
     this.mqttVINPrefix = mqttAccountPrefix + "/vehicles/" + vinInfo.getVin();
     this.vinInfo = vinInfo;
     this.vehicleState = new VehicleState(client, mqttVINPrefix);
+    this.pollingInterval = pollingInterval;
   }
 
   void handleVehicle() throws MqttException, IOException {
@@ -83,6 +87,13 @@ public class VehicleHandler {
           msg.setQos(0);
           msg.setRetained(true);
           client.publish(mqttVINPrefix + "/_internal/abrp", msg);
+
+          try {
+            Thread.sleep(pollingInterval * 1000);
+          } catch(InterruptedException e) {
+            throw new RuntimeException(e);
+          }
+
         }
       } else {
         try {
