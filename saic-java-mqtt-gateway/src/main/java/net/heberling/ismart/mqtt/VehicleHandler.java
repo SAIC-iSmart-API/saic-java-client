@@ -44,8 +44,6 @@ public class VehicleHandler {
 
   private final VehicleState vehicleState;
 
-  private final long pollingInterval;
-
   public VehicleHandler(
       SaicMqttGateway saicMqttGateway,
       IMqttClient client,
@@ -53,8 +51,7 @@ public class VehicleHandler {
       String uid,
       String token,
       String mqttAccountPrefix,
-      VinInfo vinInfo,
-      long pollingInterval) {
+      VinInfo vinInfo) {
 
     this.saicMqttGateway = saicMqttGateway;
     this.client = client;
@@ -64,7 +61,6 @@ public class VehicleHandler {
     this.mqttVINPrefix = mqttAccountPrefix + "/" + VEHICLES + "/" + vinInfo.getVin();
     this.vinInfo = vinInfo;
     this.vehicleState = new VehicleState(client, mqttVINPrefix);
-    this.pollingInterval = pollingInterval;
   }
 
   void handleVehicle() throws MqttException, IOException {
@@ -91,7 +87,7 @@ public class VehicleHandler {
           client.publish(mqttVINPrefix + "/" + INTERNAL_ABRP, msg);
 
           try {
-            Thread.sleep(pollingInterval * 1000);
+            Thread.sleep(vehicleState.getRefreshPeriodActive() * 1000);
           } catch (InterruptedException e) {
             throw new RuntimeException(e);
           }
@@ -396,6 +392,22 @@ public class VehicleHandler {
               break;
             default:
               throw new IOException("Unsupported payload " + message);
+          }
+          break;
+        case "refresh/period/active":
+          try {
+            long value = Long.valueOf(message.toString());
+            vehicleState.setRefreshPeriodActive(value);
+          } catch (NumberFormatException e) {
+            throw new IOException("Error setting value for payload: " + message);
+          }
+          break;
+        case "refresh/period/inActive":
+          try {
+            long value = Long.valueOf(message.toString());
+            vehicleState.setRefreshPeriodInactive(value);
+          } catch (NumberFormatException e) {
+            throw new IOException("Error setting value for payload: " + message);
           }
           break;
         default:

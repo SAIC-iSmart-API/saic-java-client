@@ -161,13 +161,6 @@ public class SaicMqttGateway implements Callable<Integer> {
       split = ",")
   private Map<String, String> vinAbrpTokenMap = new HashMap<>();
 
-  @CommandLine.Option(
-      names = {"-i", "--polling-interval"},
-      required = false,
-      description = {"Polling Interval in seconds between SAIC API requests"},
-      defaultValue = "${env:POLLING_INTERVAL:-${config.polling.interval}}")
-  private long pollingInterval = 0;
-
   private IMqttClient client;
 
   private final Map<String, VehicleHandler> vehicleHandlerMap = new HashMap<>();
@@ -229,6 +222,7 @@ public class SaicMqttGateway implements Callable<Integer> {
       var mqttAccountPrefix = "saic/" + saicUser;
 
       client.subscribe(mqttAccountPrefix + "/vehicles/+/+/+/set");
+      client.subscribe(mqttAccountPrefix + "/vehicles/+/+/+/+/set");
 
       MessageCoder<MP_UserLoggingInReq> loginRequestMessageCoder =
           new MessageCoder<>(MP_UserLoggingInReq.class);
@@ -277,8 +271,7 @@ public class SaicMqttGateway implements Callable<Integer> {
                             loginResponseMessage.getBody().getUid(),
                             loginResponseMessage.getApplicationData().getToken(),
                             mqttAccountPrefix,
-                            vin,
-                            pollingInterval);
+                            vin);
                     vehicleHandlerMap.put(vin.getVin(), handler);
                     return handler;
                   })

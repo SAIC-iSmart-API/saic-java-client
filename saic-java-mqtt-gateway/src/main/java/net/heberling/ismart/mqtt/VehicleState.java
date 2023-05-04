@@ -25,9 +25,15 @@ public class VehicleState {
   // treat HV battery as active, if we don't have any other information
   private boolean hvBatteryActive = true;
 
+  private long refreshPeriodActive;
+
+  private long refreshPeriodInactive;
+
   public VehicleState(IMqttClient client, String mqttVINPrefix) {
     this.client = client;
     this.mqttVINPrefix = mqttVINPrefix;
+    setRefreshPeriodActive(30);
+    setRefreshPeriodInactive(86400);
   }
 
   public void handleVehicleStatusMessage(
@@ -476,7 +482,8 @@ public class VehicleState {
 
   public boolean isRecentlyActive() {
     return hvBatteryActive
-        || lastCarActivity.isAfter(ZonedDateTime.now().minus(15, ChronoUnit.MINUTES));
+        || lastCarActivity.isAfter(
+            ZonedDateTime.now().minus(refreshPeriodInactive, ChronoUnit.SECONDS));
   }
 
   public void setHVBatteryActive(boolean hvBatteryActive) throws MqttException {
@@ -509,5 +516,35 @@ public class VehicleState {
       msg.setRetained(true);
       client.publish(mqttVINPrefix + "/" + INFO_CONFIGURATION + "/" + map.get("code"), msg);
     }
+  }
+
+  public long getRefreshPeriodActive() {
+    return refreshPeriodActive;
+  }
+
+  public void setRefreshPeriodActive(long refreshPeriodActive) {
+    try {
+      this.client.publish(
+          this.mqttVINPrefix + "/refresh/period/active",
+          new MqttMessage(String.valueOf(refreshPeriodActive).getBytes(StandardCharsets.UTF_8)));
+    } catch (MqttException e) {
+      throw new RuntimeException(e);
+    }
+    this.refreshPeriodActive = refreshPeriodActive;
+  }
+
+  public long getRefreshPeriodInactive() {
+    return refreshPeriodInactive;
+  }
+
+  public void setRefreshPeriodInactive(long refreshPeriodInactive) {
+    try {
+      this.client.publish(
+          this.mqttVINPrefix + "/refresh/period/inActive",
+          new MqttMessage(String.valueOf(refreshPeriodInactive).getBytes(StandardCharsets.UTF_8)));
+    } catch (MqttException e) {
+      throw new RuntimeException(e);
+    }
+    this.refreshPeriodInactive = refreshPeriodInactive;
   }
 }
