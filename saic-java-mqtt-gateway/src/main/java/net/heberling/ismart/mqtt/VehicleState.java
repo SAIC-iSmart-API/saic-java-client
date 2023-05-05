@@ -1,6 +1,7 @@
 package net.heberling.ismart.mqtt;
 
 import static net.heberling.ismart.mqtt.MqttGatewayTopics.*;
+import static net.heberling.ismart.mqtt.RefreshMode.PERIODIC;
 
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
@@ -29,11 +30,14 @@ public class VehicleState {
 
   private long refreshPeriodInactive;
 
+  private RefreshMode refreshMode;
+
   public VehicleState(IMqttClient client, String mqttVINPrefix) {
     this.client = client;
     this.mqttVINPrefix = mqttVINPrefix;
     setRefreshPeriodActive(30);
     setRefreshPeriodInactive(86400);
+    setRefreshMode(PERIODIC);
   }
 
   public void handleVehicleStatusMessage(
@@ -480,10 +484,19 @@ public class VehicleState {
     notifyCarActivityTime(message.getMessageTime(), false);
   }
 
-  public boolean isRecentlyActive() {
-    return hvBatteryActive
-        || lastCarActivity.isAfter(
-            ZonedDateTime.now().minus(refreshPeriodInactive, ChronoUnit.SECONDS));
+  public boolean shouldRefresh() {
+    switch (refreshMode) {
+      case OFF:
+        return false;
+      case FORCE:
+        setRefreshMode(PERIODIC);
+        return true;
+      case PERIODIC:
+      default:
+        return hvBatteryActive
+            || lastCarActivity.isAfter(
+                ZonedDateTime.now().minus(refreshPeriodInactive, ChronoUnit.SECONDS));
+    }
   }
 
   public void setHVBatteryActive(boolean hvBatteryActive) throws MqttException {
@@ -523,12 +536,13 @@ public class VehicleState {
   }
 
   public void setRefreshPeriodActive(long refreshPeriodActive) {
+    MqttMessage mqttMessage =
+        new MqttMessage(String.valueOf(refreshPeriodActive).getBytes(StandardCharsets.UTF_8));
     try {
-      this.client.publish(
-          this.mqttVINPrefix + "/refresh/period/active",
-          new MqttMessage(String.valueOf(refreshPeriodActive).getBytes(StandardCharsets.UTF_8)));
+      mqttMessage.setRetained(true);
+      this.client.publish(this.mqttVINPrefix + "/refresh/period/active", mqttMessage);
     } catch (MqttException e) {
-      throw new RuntimeException(e);
+      throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
     }
     this.refreshPeriodActive = refreshPeriodActive;
   }
@@ -538,13 +552,31 @@ public class VehicleState {
   }
 
   public void setRefreshPeriodInactive(long refreshPeriodInactive) {
+    MqttMessage mqttMessage =
+        new MqttMessage(String.valueOf(refreshPeriodInactive).getBytes(StandardCharsets.UTF_8));
     try {
-      this.client.publish(
-          this.mqttVINPrefix + "/refresh/period/inActive",
-          new MqttMessage(String.valueOf(refreshPeriodInactive).getBytes(StandardCharsets.UTF_8)));
+      mqttMessage.setRetained(true);
+      this.client.publish(this.mqttVINPrefix + "/refresh/period/inActive", mqttMessage);
     } catch (MqttException e) {
-      throw new RuntimeException(e);
+      throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
     }
     this.refreshPeriodInactive = refreshPeriodInactive;
+  }
+
+  public void setRefreshMode(RefreshMode refreshMode) {
+    MqttMessage mqttMessage =
+        new MqttMessage(refreshMode.getStringValue().getBytes(StandardCharsets.UTF_8));
+    try {
+      mqttMessage.setRetained(true);
+      this.client.publish(this.mqttVINPrefix + "/refresh/mode", mqttMessage);
+    } catch (MqttException e) {
+      throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
+    }
+
+    this.refreshMode = refreshMode;
+  }
+
+  public RefreshMode getRefreshMode() {
+    return this.refreshMode;
   }
 }

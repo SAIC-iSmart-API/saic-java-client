@@ -68,7 +68,7 @@ public class VehicleHandler {
     // we just got started, force some updates
     vehicleState.notifyCarActivityTime(ZonedDateTime.now(), true);
     while (true) {
-      if (vehicleState.isRecentlyActive()) {
+      if (vehicleState.shouldRefresh()) {
         OTA_RVMVehicleStatusResp25857 vehicleStatus =
             updateVehicleStatus(uid, token, vinInfo.getVin());
         OTA_ChrgMangDataResp chargeStatus = updateChargeStatus(uid, token, vinInfo.getVin());
@@ -339,7 +339,7 @@ public class VehicleHandler {
   public void handleMQTTCommand(String topic, MqttMessage message) throws MqttException {
     try {
       if (message.isRetained()) {
-        throw new IOException("Message may not be retained");
+        throw new MqttGatewayException("Message may not be retained");
       }
       switch (topic) {
         case DRIVETRAIN_HV_BATTERY_ACTIVE:
@@ -351,7 +351,7 @@ public class VehicleHandler {
               vehicleState.setHVBatteryActive(false);
               break;
             default:
-              throw new IOException("Unsupported payload " + message);
+              throw new MqttGatewayException("Unsupported payload " + message);
           }
           break;
         case CLIMATE_REMOTE_CLIMATE_STATE:
@@ -366,7 +366,7 @@ public class VehicleHandler {
               sendACCommand((byte) 5, (byte) 8);
               break;
             default:
-              throw new IOException("Unsupported payload " + message);
+              throw new MqttGatewayException("Unsupported payload " + message);
           }
           break;
         case DOORS_LOCKED:
@@ -391,15 +391,23 @@ public class VehicleHandler {
                           new byte[] {(byte) 0x00})));
               break;
             default:
-              throw new IOException("Unsupported payload " + message);
+              throw new MqttGatewayException("Unsupported payload " + message);
           }
+          break;
+        case "refresh/mode":
+          RefreshMode.get(message.toString())
+              .ifPresentOrElse(
+                  vehicleState::setRefreshMode,
+                  () -> {
+                    throw new MqttGatewayException("Unsupported payload " + message);
+                  });
           break;
         case "refresh/period/active":
           try {
             long value = Long.valueOf(message.toString());
             vehicleState.setRefreshPeriodActive(value);
           } catch (NumberFormatException e) {
-            throw new IOException("Error setting value for payload: " + message);
+            throw new MqttGatewayException("Error setting value for payload: " + message);
           }
           break;
         case "refresh/period/inActive":
@@ -407,11 +415,11 @@ public class VehicleHandler {
             long value = Long.valueOf(message.toString());
             vehicleState.setRefreshPeriodInactive(value);
           } catch (NumberFormatException e) {
-            throw new IOException("Error setting value for payload: " + message);
+            throw new MqttGatewayException("Error setting value for payload: " + message);
           }
           break;
         default:
-          throw new IOException("Unsupported topic " + topic);
+          throw new MqttGatewayException("Unsupported topic " + topic);
       }
       MqttMessage msg = new MqttMessage("Success".getBytes(StandardCharsets.UTF_8));
       msg.setQos(0);
@@ -422,7 +430,8 @@ public class VehicleHandler {
         | ExecutionException
         | InterruptedException
         | TimeoutException
-        | IOException e) {
+        | IOException
+        | MqttGatewayException e) {
       MqttMessage msg =
           new MqttMessage(("Command failed. " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
       msg.setQos(0);
