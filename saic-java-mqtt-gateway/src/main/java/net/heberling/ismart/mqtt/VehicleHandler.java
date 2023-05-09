@@ -135,10 +135,15 @@ public class VehicleHandler {
     while (vehicleStatusResponseMessage.getApplicationData() == null) {
 
       if (vehicleStatusResponseMessage.getBody().isErrorMessagePresent()) {
+
         if (vehicleStatusResponseMessage.getBody().getResult() == 2) {
           // TODO: relogn
         }
-        LOGGER.warn("Refreshing Vehicle State from SAIC API failed..."); // try again next time
+        LOGGER.warn(
+            "Refreshing Vehicle State from SAIC API failed with message {}...",
+            new String(
+                vehicleStatusResponseMessage.getBody().getErrorMessage(),
+                StandardCharsets.UTF_8)); // try again next time
         return null;
       }
 
@@ -212,7 +217,11 @@ public class VehicleHandler {
         if (chargingStatusResponseMessage.getBody().getResult() == 2) {
           // TODO: relogn
         }
-        // try again next time
+        LOGGER.warn(
+            "Refreshing Charging State from SAIC API failed with message {}...",
+            new String(
+                chargingStatusResponseMessage.getBody().getErrorMessage(),
+                StandardCharsets.UTF_8)); // try again next time
         return null;
       }
 
