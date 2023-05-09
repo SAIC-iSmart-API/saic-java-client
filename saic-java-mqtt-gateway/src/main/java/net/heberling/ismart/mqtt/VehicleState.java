@@ -15,9 +15,12 @@ import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class VehicleState {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(VehicleState.class);
   private final IMqttClient client;
   private final String mqttVINPrefix;
 
@@ -494,7 +497,7 @@ public class VehicleState {
       case PERIODIC:
       default:
         return hvBatteryActive
-            || lastCarActivity.isAfter(
+            || lastCarActivity.isBefore(
                 ZonedDateTime.now().minus(refreshPeriodInactive, ChronoUnit.SECONDS));
     }
   }
@@ -567,6 +570,7 @@ public class VehicleState {
     MqttMessage mqttMessage =
         new MqttMessage(refreshMode.getStringValue().getBytes(StandardCharsets.UTF_8));
     try {
+      LOGGER.info("Setting refresh mode to {}", refreshMode.getStringValue());
       mqttMessage.setRetained(true);
       this.client.publish(this.mqttVINPrefix + "/refresh/mode", mqttMessage);
     } catch (MqttException e) {
