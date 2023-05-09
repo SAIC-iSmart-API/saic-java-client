@@ -69,6 +69,7 @@ public class VehicleHandler {
     vehicleState.notifyCarActivityTime(ZonedDateTime.now(), true);
     while (true) {
       if (vehicleState.shouldRefresh()) {
+        LOGGER.info("Refreshing vehicle status...");
         OTA_RVMVehicleStatusResp25857 vehicleStatus =
             updateVehicleStatus(uid, token, vinInfo.getVin());
         OTA_ChrgMangDataResp chargeStatus = updateChargeStatus(uid, token, vinInfo.getVin());
@@ -137,7 +138,7 @@ public class VehicleHandler {
         if (vehicleStatusResponseMessage.getBody().getResult() == 2) {
           // TODO: relogn
         }
-        // try again next time
+        LOGGER.warn("Refreshing Vehicle State from SAIC API failed..."); // try again next time
         return null;
       }
 
