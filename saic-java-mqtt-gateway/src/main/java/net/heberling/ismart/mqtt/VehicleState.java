@@ -34,6 +34,7 @@ public class VehicleState {
   private long refreshPeriodInactive;
 
   private RefreshMode refreshMode;
+  private RefreshMode previousRefreshMode;
 
   public VehicleState(IMqttClient client, String mqttVINPrefix) {
     this.client = client;
@@ -492,7 +493,7 @@ public class VehicleState {
       case OFF:
         return false;
       case FORCE:
-        setRefreshMode(PERIODIC);
+        setRefreshMode(previousRefreshMode);
         return true;
       case PERIODIC:
       default:
@@ -576,7 +577,7 @@ public class VehicleState {
     } catch (MqttException e) {
       throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
     }
-
+    this.previousRefreshMode = this.refreshMode;
     this.refreshMode = refreshMode;
   }
 
