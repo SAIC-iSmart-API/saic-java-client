@@ -497,9 +497,13 @@ public class VehicleState {
         return true;
       case PERIODIC:
       default:
-        return hvBatteryActive
-            || lastCarActivity.isBefore(
-                ZonedDateTime.now().minus(refreshPeriodInactive, ChronoUnit.SECONDS));
+        if (hvBatteryActive) {
+          return lastCarActivity.isBefore(
+              ZonedDateTime.now().minus(refreshPeriodActive, ChronoUnit.SECONDS));
+        } else {
+          return lastCarActivity.isBefore(
+              ZonedDateTime.now().minus(refreshPeriodInactive, ChronoUnit.SECONDS));
+        }
     }
   }
 

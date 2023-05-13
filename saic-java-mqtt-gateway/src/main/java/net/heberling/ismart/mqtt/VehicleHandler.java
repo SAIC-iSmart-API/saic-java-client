@@ -72,6 +72,9 @@ public class VehicleHandler {
         LOGGER.info("Refreshing vehicle status...");
         OTA_RVMVehicleStatusResp25857 vehicleStatus =
             updateVehicleStatus(uid, token, vinInfo.getVin());
+        if (vehicleStatus == null) {
+          continue; // TODO find better solution for this...
+        }
         OTA_ChrgMangDataResp chargeStatus = updateChargeStatus(uid, token, vinInfo.getVin());
 
         final String abrpApiKey = saicMqttGateway.getAbrpApiKey();
@@ -86,12 +89,6 @@ public class VehicleHandler {
           msg.setQos(0);
           msg.setRetained(true);
           client.publish(mqttVINPrefix + "/" + INTERNAL_ABRP, msg);
-
-          try {
-            Thread.sleep(vehicleState.getRefreshPeriodActive() * 1000);
-          } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-          }
         }
       } else {
         try {
