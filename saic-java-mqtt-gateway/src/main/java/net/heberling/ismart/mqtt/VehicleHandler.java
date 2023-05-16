@@ -89,6 +89,8 @@ public class VehicleHandler {
           msg.setQos(0);
           msg.setRetained(true);
           client.publish(mqttVINPrefix + "/" + INTERNAL_ABRP, msg);
+          vehicleState.resetApiUpdateError();
+          vehicleState.markSuccessfulRefresh();
         }
       } else {
         try {
@@ -141,6 +143,7 @@ public class VehicleHandler {
             new String(
                 vehicleStatusResponseMessage.getBody().getErrorMessage(),
                 StandardCharsets.UTF_8)); // try again next time
+        vehicleState.apiUpdateError();
         return null;
       }
 
@@ -168,7 +171,6 @@ public class VehicleHandler {
     }
 
     vehicleState.handleVehicleStatusMessage(vehicleStatusResponseMessage);
-
     return vehicleStatusResponseMessage.getApplicationData();
   }
 
@@ -219,6 +221,7 @@ public class VehicleHandler {
             new String(
                 chargingStatusResponseMessage.getBody().getErrorMessage(),
                 StandardCharsets.UTF_8)); // try again next time
+        vehicleState.apiUpdateError();
         return null;
       }
 
