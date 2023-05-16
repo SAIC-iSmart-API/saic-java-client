@@ -428,6 +428,14 @@ public class VehicleHandler {
             throw new MqttGatewayException("Error setting value for payload: " + message);
           }
           break;
+        case "refresh/period/afterShutdown":
+          try {
+            long value = Long.valueOf(message.toString());
+            vehicleState.setRefreshPeriodAfterShutdown(value);
+          } catch (NumberFormatException e) {
+            throw new MqttGatewayException("Error setting value for payload: " + message);
+          }
+          break;
         default:
           throw new MqttGatewayException("Unsupported topic " + topic);
       }
