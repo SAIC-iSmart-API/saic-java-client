@@ -23,18 +23,15 @@ public class VehicleState {
   private static final Logger LOGGER = LoggerFactory.getLogger(VehicleState.class);
   private final IMqttClient client;
   private final String mqttVINPrefix;
-
   private ZonedDateTime lastCarActivity;
-
   private ZonedDateTime lastSuccessfulRefresh;
+  private ZonedDateTime lastCarShutdown;
   private ZonedDateTime lastVehicleMessage;
   // treat HV battery as active, if we don't have any other information
   private boolean hvBatteryActive = true;
-
   private long refreshPeriodActive;
-
   private long refreshPeriodInactive;
-
+  private long refreshPeriodAfterShutdown;
   private RefreshMode refreshMode;
   private RefreshMode previousRefreshMode;
   private int apiUpdateError;
@@ -42,8 +39,10 @@ public class VehicleState {
   public VehicleState(IMqttClient client, String mqttVINPrefix) {
     this.client = client;
     this.mqttVINPrefix = mqttVINPrefix;
+    lastCarShutdown = ZonedDateTime.now();
     setRefreshPeriodActive(30);
     setRefreshPeriodInactive(86400);
+    setRefreshPeriodAfterShutdown(600);
     setRefreshMode(PERIODIC);
   }
 
@@ -511,7 +510,10 @@ public class VehicleState {
         return true;
       case PERIODIC:
       default:
-        if (hvBatteryActive) {
+        if (hvBatteryActive
+            || lastCarShutdown
+                .plus(refreshPeriodAfterShutdown, ChronoUnit.SECONDS)
+                .isAfter(ZonedDateTime.now())) {
           return lastSuccessfulRefresh.isBefore(
               ZonedDateTime.now().minus(refreshPeriodActive, ChronoUnit.SECONDS));
         } else {
@@ -522,6 +524,9 @@ public class VehicleState {
   }
 
   public void setHVBatteryActive(boolean hvBatteryActive) throws MqttException {
+    if (!hvBatteryActive && this.hvBatteryActive) {
+      this.lastCarShutdown = ZonedDateTime.now();
+    }
     this.hvBatteryActive = hvBatteryActive;
 
     MqttMessage msg =
@@ -617,5 +622,19 @@ public class VehicleState {
 
   public void markSuccessfulRefresh() {
     this.lastSuccessfulRefresh = ZonedDateTime.now();
+  }
+
+  public void setRefreshPeriodAfterShutdown(long refreshPeriodAfterShutdown) {
+    MqttMessage mqttMessage =
+        new MqttMessage(
+            String.valueOf(refreshPeriodAfterShutdown).getBytes(StandardCharsets.UTF_8));
+    try {
+      mqttMessage.setRetained(true);
+      this.client.publish(this.mqttVINPrefix + "/refresh/period/afterShutdown", mqttMessage);
+    } catch (MqttException e) {
+      throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
+    }
+
+    this.refreshPeriodAfterShutdown = refreshPeriodAfterShutdown;
   }
 }
