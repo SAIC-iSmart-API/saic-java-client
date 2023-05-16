@@ -25,6 +25,8 @@ public class VehicleState {
   private final String mqttVINPrefix;
 
   private ZonedDateTime lastCarActivity;
+
+  private ZonedDateTime lastSuccessfulRefresh;
   private ZonedDateTime lastVehicleMessage;
   // treat HV battery as active, if we don't have any other information
   private boolean hvBatteryActive = true;
@@ -35,6 +37,7 @@ public class VehicleState {
 
   private RefreshMode refreshMode;
   private RefreshMode previousRefreshMode;
+  private int apiUpdateError;
 
   public VehicleState(IMqttClient client, String mqttVINPrefix) {
     this.client = client;
@@ -483,12 +486,23 @@ public class VehicleState {
       msg.setRetained(true);
       client.publish(mqttVINPrefix + "/" + INFO_LAST_MESSAGE, msg);
       lastVehicleMessage = message.getMessageTime();
+      resetApiUpdateError();
     }
     // something happened, better check the vehicle state
     notifyCarActivityTime(message.getMessageTime(), false);
   }
 
   public boolean shouldRefresh() {
+    if (lastSuccessfulRefresh == null) {
+      markSuccessfulRefresh();
+      return true;
+    }
+    if (lastCarActivity.isAfter(lastSuccessfulRefresh)) {
+      return true;
+    }
+    if (apiUpdateError > 10) {
+      return false;
+    }
     switch (refreshMode) {
       case OFF:
         return false;
@@ -498,10 +512,10 @@ public class VehicleState {
       case PERIODIC:
       default:
         if (hvBatteryActive) {
-          return lastCarActivity.isBefore(
+          return lastSuccessfulRefresh.isBefore(
               ZonedDateTime.now().minus(refreshPeriodActive, ChronoUnit.SECONDS));
         } else {
-          return lastCarActivity.isBefore(
+          return lastSuccessfulRefresh.isBefore(
               ZonedDateTime.now().minus(refreshPeriodInactive, ChronoUnit.SECONDS));
         }
     }
@@ -587,5 +601,21 @@ public class VehicleState {
 
   public RefreshMode getRefreshMode() {
     return this.refreshMode;
+  }
+
+  public void apiUpdateError() {
+    this.apiUpdateError++;
+  }
+
+  public void resetApiUpdateError() {
+    this.apiUpdateError = 0;
+  }
+
+  public int getApiUpdateError() {
+    return apiUpdateError;
+  }
+
+  public void markSuccessfulRefresh() {
+    this.lastSuccessfulRefresh = ZonedDateTime.now();
   }
 }
