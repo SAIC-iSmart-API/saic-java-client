@@ -69,29 +69,34 @@ public class VehicleHandler {
     vehicleState.notifyCarActivityTime(ZonedDateTime.now(), true);
     while (true) {
       if (vehicleState.shouldRefresh()) {
-        LOGGER.info("Refreshing vehicle status...");
-        OTA_RVMVehicleStatusResp25857 vehicleStatus =
-            updateVehicleStatus(uid, token, vinInfo.getVin());
-        if (vehicleStatus == null) {
-          continue; // TODO find better solution for this...
-        }
-        OTA_ChrgMangDataResp chargeStatus = updateChargeStatus(uid, token, vinInfo.getVin());
 
-        final String abrpApiKey = saicMqttGateway.getAbrpApiKey();
-        final String abrpUserToken = saicMqttGateway.getAbrpUserToken(vinInfo.getVin());
-        if (abrpApiKey != null
-            && abrpUserToken != null
-            && vehicleStatus != null
-            && chargeStatus != null) {
-          String abrpResponse =
-              ABRP.updateAbrp(abrpApiKey, abrpUserToken, vehicleStatus, chargeStatus);
-          MqttMessage msg = new MqttMessage(abrpResponse.getBytes(StandardCharsets.UTF_8));
-          msg.setQos(0);
-          msg.setRetained(true);
-          client.publish(mqttVINPrefix + "/" + INTERNAL_ABRP, msg);
-          vehicleState.resetApiUpdateError();
-          vehicleState.markSuccessfulRefresh();
+        try {
+
+          OTA_RVMVehicleStatusResp25857 vehicleStatus =
+              updateVehicleStatus(uid, token, vinInfo.getVin());
+
+          OTA_ChrgMangDataResp chargeStatus = updateChargeStatus(uid, token, vinInfo.getVin());
+          final String abrpApiKey = saicMqttGateway.getAbrpApiKey();
+          final String abrpUserToken = saicMqttGateway.getAbrpUserToken(vinInfo.getVin());
+          if (abrpApiKey != null
+              && abrpUserToken != null
+              && vehicleStatus != null
+              && chargeStatus != null) {
+            String abrpResponse =
+                ABRP.updateAbrp(abrpApiKey, abrpUserToken, vehicleStatus, chargeStatus);
+            MqttMessage msg = new MqttMessage(abrpResponse.getBytes(StandardCharsets.UTF_8));
+            msg.setQos(0);
+            msg.setRetained(true);
+            client.publish(mqttVINPrefix + "/" + INTERNAL_ABRP, msg);
+            vehicleState.resetApiUpdateError();
+            vehicleState.markSuccessfulRefresh();
+            LOGGER.info("Refreshing vehicle status succeeded...");
+          }
+
+        } catch (MqttGatewayException e) {
+          LOGGER.warn(e.getMessage());
         }
+
       } else {
         try {
           // car not active, wait a second
@@ -130,7 +135,6 @@ public class VehicleHandler {
         .getBody()
         .setEventID(vehicleStatusResponseMessage.getBody().getEventID());
     // ... use that to request the data again, until we have it
-    // TODO: check for real errors (result!=0 and/or errorMessagePresent)
     while (vehicleStatusResponseMessage.getApplicationData() == null) {
 
       if (vehicleStatusResponseMessage.getBody().isErrorMessagePresent()) {
@@ -138,13 +142,13 @@ public class VehicleHandler {
         if (vehicleStatusResponseMessage.getBody().getResult() == 2) {
           // TODO: relogn
         }
-        LOGGER.warn(
-            "Refreshing Vehicle State from SAIC API failed with message {}...",
-            new String(
-                vehicleStatusResponseMessage.getBody().getErrorMessage(),
-                StandardCharsets.UTF_8)); // try again next time
+
         vehicleState.apiUpdateError();
-        return null;
+        throw new MqttGatewayException(
+            "Refreshing Vehicle State from SAIC API failed with message: "
+                + new String(
+                    vehicleStatusResponseMessage.getBody().getErrorMessage(),
+                    StandardCharsets.UTF_8));
       }
 
       vehicleStatusRequestMessage.getBody().setUid(uid);
@@ -209,20 +213,18 @@ public class VehicleHandler {
         .getBody()
         .setEventID(chargingStatusResponseMessage.getBody().getEventID());
     // ... use that to request the data again, until we have it
-    // TODO: check for real errors (result!=0 and/or errorMessagePresent)
     while (chargingStatusResponseMessage.getApplicationData() == null) {
 
       if (chargingStatusResponseMessage.getBody().isErrorMessagePresent()) {
         if (chargingStatusResponseMessage.getBody().getResult() == 2) {
           // TODO: relogn
         }
-        LOGGER.warn(
-            "Refreshing Charging State from SAIC API failed with message {}...",
-            new String(
-                chargingStatusResponseMessage.getBody().getErrorMessage(),
-                StandardCharsets.UTF_8)); // try again next time
         vehicleState.apiUpdateError();
-        return null;
+        throw new MqttGatewayException(
+            "Refreshing Charging State from SAIC API failed with message: "
+                + new String(
+                    chargingStatusResponseMessage.getBody().getErrorMessage(),
+                    StandardCharsets.UTF_8));
       }
 
       SaicMqttGateway.fillReserved(chargingStatusMessage.getReserved());

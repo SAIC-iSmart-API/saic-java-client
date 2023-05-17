@@ -4,10 +4,12 @@ import static net.heberling.ismart.mqtt.MqttGatewayTopics.*;
 import static net.heberling.ismart.mqtt.RefreshMode.PERIODIC;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 import net.heberling.ismart.asn1.v1_1.entity.VinInfo;
 import net.heberling.ismart.asn1.v2_1.Message;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusResp25857;
@@ -23,6 +25,7 @@ public class VehicleState {
   private static final Logger LOGGER = LoggerFactory.getLogger(VehicleState.class);
   private final IMqttClient client;
   private final String mqttVINPrefix;
+  private Supplier<Clock> clockSupplier;
   private ZonedDateTime lastCarActivity;
   private ZonedDateTime lastSuccessfulRefresh;
   private ZonedDateTime lastCarShutdown;
@@ -37,9 +40,14 @@ public class VehicleState {
   private int apiUpdateError;
 
   public VehicleState(IMqttClient client, String mqttVINPrefix) {
+    this(client, mqttVINPrefix, () -> Clock.systemDefaultZone());
+  }
+
+  protected VehicleState(IMqttClient client, String mqttVINPrefix, Supplier<Clock> clockSupplier) {
     this.client = client;
     this.mqttVINPrefix = mqttVINPrefix;
-    lastCarShutdown = ZonedDateTime.now();
+    this.clockSupplier = clockSupplier;
+    lastCarShutdown = ZonedDateTime.now(clockSupplier.get());
     setRefreshPeriodActive(30);
     setRefreshPeriodInactive(86400);
     setRefreshPeriodAfterShutdown(600);
@@ -365,7 +373,7 @@ public class VehicleState {
 
     msg =
         new MqttMessage(
-            SaicMqttGateway.toJSON(ZonedDateTime.now()).getBytes(StandardCharsets.UTF_8));
+            SaicMqttGateway.toJSON(ZonedDateTime.now(getClock())).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
     client.publish(mqttVINPrefix + "/" + REFRESH_LAST_VEHICLE_STATE, msg);
@@ -458,7 +466,7 @@ public class VehicleState {
 
     msg =
         new MqttMessage(
-            SaicMqttGateway.toJSON(ZonedDateTime.now()).getBytes(StandardCharsets.UTF_8));
+            SaicMqttGateway.toJSON(ZonedDateTime.now(getClock())).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
     client.publish(mqttVINPrefix + "/" + REFRESH_LAST_CHARGE_STATE, msg);
@@ -492,16 +500,6 @@ public class VehicleState {
   }
 
   public boolean shouldRefresh() {
-    if (lastSuccessfulRefresh == null) {
-      markSuccessfulRefresh();
-      return true;
-    }
-    if (lastCarActivity.isAfter(lastSuccessfulRefresh)) {
-      return true;
-    }
-    if (apiUpdateError > 10) {
-      return false;
-    }
     switch (refreshMode) {
       case OFF:
         return false;
@@ -510,22 +508,32 @@ public class VehicleState {
         return true;
       case PERIODIC:
       default:
+        if (lastSuccessfulRefresh == null) {
+          markSuccessfulRefresh();
+          return true;
+        }
+        if (lastCarActivity.isAfter(lastSuccessfulRefresh)) {
+          return true;
+        }
+        if (apiUpdateError > 10) {
+          return false;
+        }
         if (hvBatteryActive
             || lastCarShutdown
                 .plus(refreshPeriodAfterShutdown, ChronoUnit.SECONDS)
-                .isAfter(ZonedDateTime.now())) {
+                .isAfter(ZonedDateTime.now(getClock()))) {
           return lastSuccessfulRefresh.isBefore(
-              ZonedDateTime.now().minus(refreshPeriodActive, ChronoUnit.SECONDS));
+              ZonedDateTime.now(getClock()).minus(refreshPeriodActive, ChronoUnit.SECONDS));
         } else {
           return lastSuccessfulRefresh.isBefore(
-              ZonedDateTime.now().minus(refreshPeriodInactive, ChronoUnit.SECONDS));
+              ZonedDateTime.now(getClock()).minus(refreshPeriodInactive, ChronoUnit.SECONDS));
         }
     }
   }
 
   public void setHVBatteryActive(boolean hvBatteryActive) throws MqttException {
     if (!hvBatteryActive && this.hvBatteryActive) {
-      this.lastCarShutdown = ZonedDateTime.now();
+      this.lastCarShutdown = ZonedDateTime.now(getClock());
     }
     this.hvBatteryActive = hvBatteryActive;
 
@@ -536,7 +544,7 @@ public class VehicleState {
     client.publish(mqttVINPrefix + "/" + DRIVETRAIN_HV_BATTERY_ACTIVE, msg);
 
     if (hvBatteryActive) {
-      notifyCarActivityTime(ZonedDateTime.now(), true);
+      notifyCarActivityTime(ZonedDateTime.now(getClock()), true);
     }
   }
 
@@ -621,7 +629,7 @@ public class VehicleState {
   }
 
   public void markSuccessfulRefresh() {
-    this.lastSuccessfulRefresh = ZonedDateTime.now();
+    this.lastSuccessfulRefresh = ZonedDateTime.now(getClock());
   }
 
   public void setRefreshPeriodAfterShutdown(long refreshPeriodAfterShutdown) {
@@ -636,5 +644,9 @@ public class VehicleState {
     }
 
     this.refreshPeriodAfterShutdown = refreshPeriodAfterShutdown;
+  }
+
+  private Clock getClock() {
+    return clockSupplier.get();
   }
 }
