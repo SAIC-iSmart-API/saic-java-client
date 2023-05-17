@@ -243,9 +243,11 @@ public class VehicleState {
         new MqttMessage(
             String.valueOf(
                     vehicleStatusResponseMessage
-                        .getApplicationData()
-                        .getBasicVehicleStatus()
-                        .getFrontLeftTyrePressure())
+                            .getApplicationData()
+                            .getBasicVehicleStatus()
+                            .getFrontLeftTyrePressure()
+                        * 4
+                        / 100d)
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
@@ -255,9 +257,11 @@ public class VehicleState {
         new MqttMessage(
             String.valueOf(
                     vehicleStatusResponseMessage
-                        .getApplicationData()
-                        .getBasicVehicleStatus()
-                        .getFrontRrightTyrePressure())
+                            .getApplicationData()
+                            .getBasicVehicleStatus()
+                            .getFrontRrightTyrePressure()
+                        * 4
+                        / 100d)
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
@@ -267,9 +271,11 @@ public class VehicleState {
         new MqttMessage(
             String.valueOf(
                     vehicleStatusResponseMessage
-                        .getApplicationData()
-                        .getBasicVehicleStatus()
-                        .getRearLeftTyrePressure())
+                            .getApplicationData()
+                            .getBasicVehicleStatus()
+                            .getRearLeftTyrePressure()
+                        * 4
+                        / 100d)
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
@@ -279,9 +285,11 @@ public class VehicleState {
         new MqttMessage(
             String.valueOf(
                     vehicleStatusResponseMessage
-                        .getApplicationData()
-                        .getBasicVehicleStatus()
-                        .getRearRightTyrePressure())
+                            .getApplicationData()
+                            .getBasicVehicleStatus()
+                            .getRearRightTyrePressure()
+                        * 4
+                        / 100d)
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
