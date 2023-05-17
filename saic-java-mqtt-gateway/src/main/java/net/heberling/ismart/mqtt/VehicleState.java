@@ -575,7 +575,7 @@ public class VehicleState {
         new MqttMessage(String.valueOf(refreshPeriodActive).getBytes(StandardCharsets.UTF_8));
     try {
       mqttMessage.setRetained(true);
-      this.client.publish(this.mqttVINPrefix + "/refresh/period/active", mqttMessage);
+      this.client.publish(this.mqttVINPrefix + "/" + REFRESH_PERIOD_ACTIVE, mqttMessage);
     } catch (MqttException e) {
       throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
     }
@@ -591,7 +591,7 @@ public class VehicleState {
         new MqttMessage(String.valueOf(refreshPeriodInactive).getBytes(StandardCharsets.UTF_8));
     try {
       mqttMessage.setRetained(true);
-      this.client.publish(this.mqttVINPrefix + "/refresh/period/inActive", mqttMessage);
+      this.client.publish(this.mqttVINPrefix + "/" + REFRESH_PERIOD_INACTIVE, mqttMessage);
     } catch (MqttException e) {
       throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
     }
@@ -604,7 +604,7 @@ public class VehicleState {
     try {
       LOGGER.info("Setting refresh mode to {}", refreshMode.getStringValue());
       mqttMessage.setRetained(true);
-      this.client.publish(this.mqttVINPrefix + "/refresh/mode", mqttMessage);
+      this.client.publish(this.mqttVINPrefix + "/" + REFRESH_MODE, mqttMessage);
     } catch (MqttException e) {
       throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
     }
@@ -638,7 +638,7 @@ public class VehicleState {
             String.valueOf(refreshPeriodAfterShutdown).getBytes(StandardCharsets.UTF_8));
     try {
       mqttMessage.setRetained(true);
-      this.client.publish(this.mqttVINPrefix + "/refresh/period/afterShutdown", mqttMessage);
+      this.client.publish(this.mqttVINPrefix + "/" + REFRESH_PERIOD_AFTER_SHUTDOWN, mqttMessage);
     } catch (MqttException e) {
       throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
     }
