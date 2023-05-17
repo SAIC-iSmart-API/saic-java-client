@@ -406,7 +406,7 @@ public class VehicleHandler {
               throw new MqttGatewayException("Unsupported payload " + message);
           }
           break;
-        case "refresh/mode":
+        case REFRESH_MODE:
           RefreshMode.get(message.toString())
               .ifPresentOrElse(
                   vehicleState::setRefreshMode,
@@ -414,7 +414,7 @@ public class VehicleHandler {
                     throw new MqttGatewayException("Unsupported payload " + message);
                   });
           break;
-        case "refresh/period/active":
+        case REFRESH_PERIOD_ACTIVE:
           try {
             long value = Long.valueOf(message.toString());
             vehicleState.setRefreshPeriodActive(value);
@@ -422,7 +422,7 @@ public class VehicleHandler {
             throw new MqttGatewayException("Error setting value for payload: " + message);
           }
           break;
-        case "refresh/period/inActive":
+        case REFRESH_PERIOD_INACTIVE:
           try {
             long value = Long.valueOf(message.toString());
             vehicleState.setRefreshPeriodInactive(value);
@@ -430,7 +430,7 @@ public class VehicleHandler {
             throw new MqttGatewayException("Error setting value for payload: " + message);
           }
           break;
-        case "refresh/period/afterShutdown":
+        case REFRESH_PERIOD_AFTER_SHUTDOWN:
           try {
             long value = Long.valueOf(message.toString());
             vehicleState.setRefreshPeriodAfterShutdown(value);
