@@ -1,5 +1,7 @@
 package net.heberling.ismart.mqtt;
 
+import static net.heberling.ismart.mqtt.MqttGatewayTopics.*;
+
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -59,7 +61,9 @@ public class VehicleState {
     msg.setRetained(true);
     client.publish(
         mqttVINPrefix
-            + "/_internal/"
+            + "/"
+            + INTERNAL
+            + "/"
             + vehicleStatusResponseMessage.getBody().getApplicationID()
             + "_"
             + vehicleStatusResponseMessage.getBody().getApplicationDataProtocolVersion()
@@ -69,12 +73,12 @@ public class VehicleState {
     msg = new MqttMessage(String.valueOf(engineRunning).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/drivetrain/running", msg);
+    client.publish(mqttVINPrefix + "/" + DRIVETRAIN_RUNNING, msg);
 
     msg = new MqttMessage(String.valueOf(isCharging).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/drivetrain/charging", msg);
+    client.publish(mqttVINPrefix + "/" + DRIVETRAIN_CHARGING, msg);
 
     Integer interiorTemperature =
         vehicleStatusResponseMessage
@@ -85,7 +89,7 @@ public class VehicleState {
       msg = new MqttMessage(String.valueOf(interiorTemperature).getBytes(StandardCharsets.UTF_8));
       msg.setQos(0);
       msg.setRetained(true);
-      client.publish(mqttVINPrefix + "/climate/interiorTemperature", msg);
+      client.publish(mqttVINPrefix + "/" + CLIMATE_INTERIOR_TEMPERATURE, msg);
     }
 
     Integer exteriorTemperature =
@@ -97,7 +101,7 @@ public class VehicleState {
       msg = new MqttMessage(String.valueOf(exteriorTemperature).getBytes(StandardCharsets.UTF_8));
       msg.setQos(0);
       msg.setRetained(true);
-      client.publish(mqttVINPrefix + "/climate/exteriorTemperature", msg);
+      client.publish(mqttVINPrefix + "/" + CLIMATE_EXTERIOR_TEMPERATURE, msg);
     }
 
     msg =
@@ -111,7 +115,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/drivetrain/auxiliaryBatteryVoltage", msg);
+    client.publish(mqttVINPrefix + "/" + DRIVETRAIN_AUXILIARY_BATTERY_VOLTAGE, msg);
 
     msg =
         new MqttMessage(
@@ -124,7 +128,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/location/position", msg);
+    client.publish(mqttVINPrefix + "/" + LOCATION_POSITION, msg);
 
     msg =
         new MqttMessage(
@@ -138,7 +142,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/location/speed", msg);
+    client.publish(mqttVINPrefix + "/" + LOCATION_SPEED, msg);
 
     msg =
         new MqttMessage(
@@ -152,7 +156,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/location/heading", msg);
+    client.publish(mqttVINPrefix + "/" + LOCATION_HEADING, msg);
 
     msg =
         new MqttMessage(
@@ -164,7 +168,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/doors/locked", msg);
+    client.publish(mqttVINPrefix + "/" + DOORS_LOCKED, msg);
 
     // todo check configuration for available doors
     msg =
@@ -177,7 +181,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/doors/driver", msg);
+    client.publish(mqttVINPrefix + "/" + DOORS_DRIVER, msg);
 
     msg =
         new MqttMessage(
@@ -189,7 +193,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/doors/passenger", msg);
+    client.publish(mqttVINPrefix + "/" + DOORS_PASSENGER, msg);
 
     msg =
         new MqttMessage(
@@ -201,7 +205,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/doors/rearLeft", msg);
+    client.publish(mqttVINPrefix + "/" + DOORS_REAR_LEFT, msg);
 
     msg =
         new MqttMessage(
@@ -213,7 +217,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/doors/rearRight", msg);
+    client.publish(mqttVINPrefix + "/" + DOORS_REAR_RIGHT, msg);
 
     msg =
         new MqttMessage(
@@ -225,7 +229,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/doors/boot", msg);
+    client.publish(mqttVINPrefix + "/" + DOORS_BOOT, msg);
 
     msg =
         new MqttMessage(
@@ -237,7 +241,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/doors/bonnet", msg);
+    client.publish(mqttVINPrefix + "/" + DOORS_BONNET, msg);
 
     msg =
         new MqttMessage(
@@ -251,7 +255,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/tyres/frontLeftPressure", msg);
+    client.publish(mqttVINPrefix + "/" + TYRES_FRONT_LEFT_PRESSURE, msg);
 
     msg =
         new MqttMessage(
@@ -265,7 +269,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/tyres/frontRightPressure", msg);
+    client.publish(mqttVINPrefix + "/" + TYRES_FRONT_RIGHT_PRESSURE, msg);
 
     msg =
         new MqttMessage(
@@ -279,7 +283,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/tyres/rearLeftPressure", msg);
+    client.publish(mqttVINPrefix + "/" + TYRES_REAR_LEFT_PRESSURE, msg);
 
     msg =
         new MqttMessage(
@@ -293,12 +297,12 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/tyres/rearRightPressure", msg);
+    client.publish(mqttVINPrefix + "/" + TYRES_REAR_RIGHT_PRESSURE, msg);
 
     msg = new MqttMessage(toRemoteClimate(remoteClimateStatus).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/climate/remoteClimateState", msg);
+    client.publish(mqttVINPrefix + "/" + CLIMATE_REMOTE_CLIMATE_STATE, msg);
 
     msg =
         new MqttMessage(
@@ -310,7 +314,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/climate/backWindowHeat", msg);
+    client.publish(mqttVINPrefix + "/" + CLIMATE_BACK_WINDOW_HEAT, msg);
 
     if (vehicleStatusResponseMessage.getApplicationData().getBasicVehicleStatus().getMileage()
         > 0) {
@@ -326,7 +330,7 @@ public class VehicleState {
                   .getBytes(StandardCharsets.UTF_8));
       msg.setQos(0);
       msg.setRetained(true);
-      client.publish(mqttVINPrefix + "/drivetrain/mileage", msg);
+      client.publish(mqttVINPrefix + "/" + DRIVETRAIN_MILEAGE, msg);
 
       // if the milage is 0, the electric range is also 0
       msg =
@@ -340,7 +344,7 @@ public class VehicleState {
                   .getBytes(StandardCharsets.UTF_8));
       msg.setQos(0);
       msg.setRetained(true);
-      client.publish(mqttVINPrefix + "/drivetrain/range", msg);
+      client.publish(mqttVINPrefix + "/" + DRIVETRAIN_RANGE, msg);
     }
 
     msg =
@@ -348,7 +352,7 @@ public class VehicleState {
             SaicMqttGateway.toJSON(ZonedDateTime.now()).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/refresh/lastVehicleState", msg);
+    client.publish(mqttVINPrefix + "/" + REFRESH_LAST_VEHICLE_STATE, msg);
   }
 
   private static String toRemoteClimate(Integer remoteClimateStatus) {
@@ -374,7 +378,9 @@ public class VehicleState {
     msg.setRetained(true);
     client.publish(
         mqttVINPrefix
-            + "/_internal/"
+            + "/"
+            + INTERNAL
+            + "/"
             + chargingStatusResponseMessage.getBody().getApplicationID()
             + "_"
             + chargingStatusResponseMessage.getBody().getApplicationDataProtocolVersion()
@@ -386,20 +392,20 @@ public class VehicleState {
     msg = new MqttMessage((String.valueOf(current)).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/drivetrain/current", msg);
+    client.publish(mqttVINPrefix + "/" + DRIVETRAIN_CURRENT, msg);
 
     double voltage =
         (double) chargingStatusResponseMessage.getApplicationData().getBmsPackVol() * 0.25d;
     msg = new MqttMessage((String.valueOf(voltage)).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/drivetrain/voltage", msg);
+    client.publish(mqttVINPrefix + "/" + DRIVETRAIN_VOLTAGE, msg);
 
     double power = current * voltage / 1000d;
     msg = new MqttMessage((String.valueOf(power)).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/drivetrain/power", msg);
+    client.publish(mqttVINPrefix + "/" + DRIVETRAIN_POWER, msg);
 
     msg =
         new MqttMessage(
@@ -411,7 +417,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/drivetrain/chargerConnected", msg);
+    client.publish(mqttVINPrefix + "/" + DRIVETRAIN_CHARGER_CONNECTED, msg);
 
     msg =
         new MqttMessage(
@@ -423,7 +429,7 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/drivetrain/chargingType", msg);
+    client.publish(mqttVINPrefix + "/" + DRIVETRAIN_CHARGING_TYPE, msg);
 
     msg =
         new MqttMessage(
@@ -432,14 +438,14 @@ public class VehicleState {
                 .getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/drivetrain/soc", msg);
+    client.publish(mqttVINPrefix + "/" + DRIVETRAIN_SOC, msg);
 
     msg =
         new MqttMessage(
             SaicMqttGateway.toJSON(ZonedDateTime.now()).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/refresh/lastChargeState", msg);
+    client.publish(mqttVINPrefix + "/" + REFRESH_LAST_CHARGE_STATE, msg);
   }
 
   public void notifyCarActivityTime(ZonedDateTime now, boolean force) throws MqttException {
@@ -450,7 +456,7 @@ public class VehicleState {
           new MqttMessage(SaicMqttGateway.toJSON(lastCarActivity).getBytes(StandardCharsets.UTF_8));
       msg.setQos(0);
       msg.setRetained(true);
-      client.publish(mqttVINPrefix + "/refresh/lastActivity", msg);
+      client.publish(mqttVINPrefix + "/" + REFRESH_LAST_ACTIVITY, msg);
     }
   }
 
@@ -461,7 +467,7 @@ public class VehicleState {
           new MqttMessage(SaicMqttGateway.toJSON(message).getBytes(StandardCharsets.UTF_8));
       msg.setQos(0);
       msg.setRetained(true);
-      client.publish(mqttVINPrefix + "/info/lastMessage", msg);
+      client.publish(mqttVINPrefix + "/" + INFO_LAST_MESSAGE, msg);
       lastVehicleMessage = message.getMessageTime();
     }
     // something happened, better check the vehicle state
@@ -480,7 +486,7 @@ public class VehicleState {
         new MqttMessage(SaicMqttGateway.toJSON(hvBatteryActive).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/drivetrain/hvBatteryActive", msg);
+    client.publish(mqttVINPrefix + "/" + DRIVETRAIN_HV_BATTERY_ACTIVE, msg);
 
     if (hvBatteryActive) {
       notifyCarActivityTime(ZonedDateTime.now(), true);
@@ -492,7 +498,7 @@ public class VehicleState {
         new MqttMessage(vinInfo.getModelConfigurationJsonStr().getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
-    client.publish(mqttVINPrefix + "/_internal/configuration/raw", msg);
+    client.publish(mqttVINPrefix + "/" + INTERNAL_CONFIGURATION_RAW, msg);
     for (String c : vinInfo.getModelConfigurationJsonStr().split(";")) {
       Map<String, String> map = new HashMap<>();
       for (String e : c.split(",")) {
@@ -501,7 +507,7 @@ public class VehicleState {
       msg = new MqttMessage(map.get("value").getBytes(StandardCharsets.UTF_8));
       msg.setQos(0);
       msg.setRetained(true);
-      client.publish(mqttVINPrefix + "/info/configuration/" + map.get("code"), msg);
+      client.publish(mqttVINPrefix + "/" + INFO_CONFIGURATION + "/" + map.get("code"), msg);
     }
   }
 }

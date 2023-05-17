@@ -1,5 +1,7 @@
 package net.heberling.ismart.mqtt;
 
+import static net.heberling.ismart.mqtt.MqttGatewayTopics.*;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -56,7 +58,7 @@ public class VehicleHandler {
     this.saicUri = saicUri;
     this.uid = uid;
     this.token = token;
-    this.mqttVINPrefix = mqttAccountPrefix + "/vehicles/" + vinInfo.getVin();
+    this.mqttVINPrefix = mqttAccountPrefix + "/" + VEHICLES + "/" + vinInfo.getVin();
     this.vinInfo = vinInfo;
     this.vehicleState = new VehicleState(client, mqttVINPrefix);
   }
@@ -82,7 +84,7 @@ public class VehicleHandler {
           MqttMessage msg = new MqttMessage(abrpResponse.getBytes(StandardCharsets.UTF_8));
           msg.setQos(0);
           msg.setRetained(true);
-          client.publish(mqttVINPrefix + "/_internal/abrp", msg);
+          client.publish(mqttVINPrefix + "/" + INTERNAL_ABRP, msg);
         }
       } else {
         try {
@@ -334,7 +336,7 @@ public class VehicleHandler {
         throw new IOException("Message may not be retained");
       }
       switch (topic) {
-        case "drivetrain/hvBatteryActive":
+        case DRIVETRAIN_HV_BATTERY_ACTIVE:
           switch (message.toString().toLowerCase()) {
             case "true":
               vehicleState.setHVBatteryActive(true);
@@ -346,7 +348,7 @@ public class VehicleHandler {
               throw new IOException("Unsupported payload " + message);
           }
           break;
-        case "climate/remoteClimateState":
+        case CLIMATE_REMOTE_CLIMATE_STATE:
           switch (message.toString().toLowerCase()) {
             case "off":
               sendACCommand((byte) 0, (byte) 0);
@@ -361,7 +363,7 @@ public class VehicleHandler {
               throw new IOException("Unsupported payload " + message);
           }
           break;
-        case "doors/locked":
+        case DOORS_LOCKED:
           switch (message.toString().toLowerCase()) {
             case "true":
               sendCommand((byte) 0x01, new TreeMap<>(Map.of()));
