@@ -37,7 +37,6 @@ public class VehicleState {
   private long refreshPeriodAfterShutdown;
   private RefreshMode refreshMode;
   private RefreshMode previousRefreshMode;
-  private int apiUpdateError;
 
   public VehicleState(IMqttClient client, String mqttVINPrefix) {
     this(client, mqttVINPrefix, () -> Clock.systemDefaultZone());
@@ -493,7 +492,6 @@ public class VehicleState {
       msg.setRetained(true);
       client.publish(mqttVINPrefix + "/" + INFO_LAST_MESSAGE, msg);
       lastVehicleMessage = message.getMessageTime();
-      resetApiUpdateError();
     }
     // something happened, better check the vehicle state
     notifyCarActivityTime(message.getMessageTime(), false);
@@ -514,9 +512,6 @@ public class VehicleState {
         }
         if (lastCarActivity.isAfter(lastSuccessfulRefresh)) {
           return true;
-        }
-        if (apiUpdateError > 10) {
-          return false;
         }
         if (hvBatteryActive
             || lastCarShutdown
@@ -614,18 +609,6 @@ public class VehicleState {
 
   public RefreshMode getRefreshMode() {
     return this.refreshMode;
-  }
-
-  public void apiUpdateError() {
-    this.apiUpdateError++;
-  }
-
-  public void resetApiUpdateError() {
-    this.apiUpdateError = 0;
-  }
-
-  public int getApiUpdateError() {
-    return apiUpdateError;
   }
 
   public void markSuccessfulRefresh() {

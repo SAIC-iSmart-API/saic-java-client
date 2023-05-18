@@ -88,7 +88,6 @@ public class VehicleHandler {
             msg.setQos(0);
             msg.setRetained(true);
             client.publish(mqttVINPrefix + "/" + INTERNAL_ABRP, msg);
-            vehicleState.resetApiUpdateError();
             vehicleState.markSuccessfulRefresh();
             LOGGER.info("Refreshing vehicle status succeeded...");
           }
@@ -143,7 +142,6 @@ public class VehicleHandler {
           // TODO: relogn
         }
 
-        vehicleState.apiUpdateError();
         throw new MqttGatewayException(
             "Refreshing Vehicle State from SAIC API failed with message: "
                 + new String(
@@ -219,7 +217,6 @@ public class VehicleHandler {
         if (chargingStatusResponseMessage.getBody().getResult() == 2) {
           // TODO: relogn
         }
-        vehicleState.apiUpdateError();
         throw new MqttGatewayException(
             "Refreshing Charging State from SAIC API failed with message: "
                 + new String(

@@ -44,16 +44,6 @@ public class VehicleStateTest {
   }
 
   @Test
-  public void willNotRefreshIfApiReturns10SubsequentErrors() throws MqttException {
-    clock = Clock.offset(clock, java.time.Duration.ofSeconds(60));
-    vehicleState.markSuccessfulRefresh();
-    for (int i = 0; i < 10; i++) {
-      vehicleState.apiUpdateError();
-    }
-    assertThat(vehicleState.shouldRefresh(), is(false));
-  }
-
-  @Test
   public void willNeverRefreshIfRefreshModeIsOff() throws MqttException {
     clock = Clock.offset(clock, java.time.Duration.ofSeconds(60));
     vehicleState.setRefreshMode(RefreshMode.OFF);
