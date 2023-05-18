@@ -1,6 +1,7 @@
 package net.heberling.ismart.mqtt;
 
 import static net.heberling.ismart.mqtt.MqttGatewayTopics.*;
+import static net.heberling.ismart.mqtt.RefreshMode.FORCE;
 import static net.heberling.ismart.mqtt.RefreshMode.PERIODIC;
 
 import java.nio.charset.StandardCharsets;
@@ -506,6 +507,10 @@ public class VehicleState {
         return true;
       case PERIODIC:
       default:
+        if (previousRefreshMode == FORCE) {
+          previousRefreshMode = null;
+          return true;
+        }
         if (lastSuccessfulRefresh == null) {
           markSuccessfulRefresh();
           return true;
