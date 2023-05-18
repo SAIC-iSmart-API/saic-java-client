@@ -58,6 +58,20 @@ public class VehicleStateTest {
   }
 
   @Test
+  public void willRefreshTwiceIfRefreshModeIsForce() throws MqttException {
+    vehicleState.markSuccessfulRefresh();
+    vehicleState.setHVBatteryActive(false);
+    clock = Clock.offset(clock, java.time.Duration.ofDays(1).minusSeconds(1));
+    vehicleState.setRefreshMode(RefreshMode.FORCE);
+    assertThat(vehicleState.shouldRefresh(), is(true));
+    assertThat(vehicleState.getRefreshMode(), is(RefreshMode.PERIODIC));
+    assertThat(vehicleState.shouldRefresh(), is(true));
+    assertThat(vehicleState.getRefreshMode(), is(RefreshMode.PERIODIC));
+    assertThat(vehicleState.shouldRefresh(), is(false));
+    assertThat(vehicleState.getRefreshMode(), is(RefreshMode.PERIODIC));
+  }
+
+  @Test
   public void willNotRefreshIfActiveBefore30s() throws MqttException {
     vehicleState.markSuccessfulRefresh();
     clock = Clock.offset(clock, java.time.Duration.ofSeconds(29));
