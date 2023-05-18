@@ -621,7 +621,7 @@ public class VehicleState {
             String.valueOf(refreshPeriodAfterShutdown).getBytes(StandardCharsets.UTF_8));
     try {
       mqttMessage.setRetained(true);
-      this.client.publish(this.mqttVINPrefix + "/" + REFRESH_PERIOD_AFTER_SHUTDOWN, mqttMessage);
+      this.client.publish(this.mqttVINPrefix + "/" + REFRESH_PERIOD_INACTIVE_GRACE, mqttMessage);
     } catch (MqttException e) {
       throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
     }

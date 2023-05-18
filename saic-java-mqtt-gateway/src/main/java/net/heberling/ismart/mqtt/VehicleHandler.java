@@ -427,7 +427,7 @@ public class VehicleHandler {
             throw new MqttGatewayException("Error setting value for payload: " + message);
           }
           break;
-        case REFRESH_PERIOD_AFTER_SHUTDOWN:
+        case REFRESH_PERIOD_INACTIVE_GRACE:
           try {
             long value = Long.valueOf(message.toString());
             vehicleState.setRefreshPeriodAfterShutdown(value);
