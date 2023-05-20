@@ -240,8 +240,12 @@ public class VehicleHandler {
   }
 
   private void sendACCommand(byte command, byte temperature)
-      throws URISyntaxException, ExecutionException, InterruptedException, TimeoutException,
-          MqttException, IOException {
+      throws URISyntaxException,
+          ExecutionException,
+          InterruptedException,
+          TimeoutException,
+          MqttException,
+          IOException {
     sendCommand(
         (byte) 6,
         new TreeMap<>(
@@ -249,8 +253,12 @@ public class VehicleHandler {
   }
 
   private void sendCommand(byte type, SortedMap<Integer, byte[]> parameter)
-      throws URISyntaxException, ExecutionException, InterruptedException, TimeoutException,
-          MqttException, IOException {
+      throws URISyntaxException,
+          ExecutionException,
+          InterruptedException,
+          TimeoutException,
+          MqttException,
+          IOException {
     MessageCoder<OTA_RVCReq> otaRvcReqMessageCoder = new MessageCoder<>(OTA_RVCReq.class);
 
     // we send a command end expect the car to wake up
