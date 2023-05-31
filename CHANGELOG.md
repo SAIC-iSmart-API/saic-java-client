@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 - MQTT
+### Dependencies
+- Bump `testcontainers-bom` from 1.18.1 to 1.18.2 (#26)
   - calculate correct tyre pressure
 
 ## [0.2.0] - 2023-04-02
