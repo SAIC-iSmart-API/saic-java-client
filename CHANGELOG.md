@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - calculate correct tyre pressure
 ### Dependencies
 - Bump `testcontainers-bom` from 1.18.1 to 1.18.3 (#27)
+- Bump `maven-source-plugin` from 3.2.1 to 3.3.0 (#23)
 
 ## [0.2.0] - 2023-04-02
 ### Changed
