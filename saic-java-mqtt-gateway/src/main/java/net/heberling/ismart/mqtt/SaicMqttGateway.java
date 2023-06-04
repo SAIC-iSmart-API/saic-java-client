@@ -1,5 +1,8 @@
 package net.heberling.ismart.mqtt;
 
+import static net.heberling.ismart.mqtt.MqttGatewayTopics.REFRESH_MODE;
+import static net.heberling.ismart.mqtt.MqttGatewayTopics.REFRESH_PERIOD;
+
 import com.fasterxml.jackson.dataformat.toml.TomlMapper;
 import com.owlike.genson.Context;
 import com.owlike.genson.Converter;
@@ -20,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -165,6 +169,9 @@ public class SaicMqttGateway implements Callable<Integer> {
 
   private final Map<String, VehicleHandler> vehicleHandlerMap = new HashMap<>();
 
+  private final Map<String, VehicleState> vehicleStateMap =
+      Collections.synchronizedMap(new HashMap<>());
+
   @Override
   public Integer call() throws Exception { // your business logic goes here...
     String publisherId = UUID.randomUUID().toString();
@@ -189,6 +196,8 @@ public class SaicMqttGateway implements Callable<Integer> {
       }
       client.connect(options);
 
+      var mqttAccountPrefix = "saic/" + saicUser;
+
       client.setCallback(
           new MqttCallback() {
             @Override
@@ -197,21 +206,29 @@ public class SaicMqttGateway implements Callable<Integer> {
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
               LOGGER.info("Got message for topic {}: {}", topic, message);
-              final Matcher matcher =
+              final Matcher setValueMatcher =
                   Pattern.compile(".*/vehicles/([^/]*)/(.*)/set").matcher(topic);
-              if (matcher.matches()) {
+              final Matcher configurationValueMatcher =
+                  Pattern.compile(".*/vehicles/([^/]*)/(.*)").matcher(topic);
+              if (setValueMatcher.matches()) {
                 new Thread(
                         () -> {
                           try {
                             vehicleHandlerMap
-                                .get(matcher.group(1))
-                                .handleMQTTCommand(matcher.group(2), message);
+                                .get(setValueMatcher.group(1))
+                                .handleMQTTCommand(setValueMatcher.group(2), message);
                           } catch (MqttException e) {
                             LOGGER.error(
                                 "Could not handle message for topic {}: {}", topic, message, e);
                           }
                         })
                     .start();
+              } else if (configurationValueMatcher.matches()) {
+                VehicleState vehicleState =
+                    getVehicleState(mqttAccountPrefix, configurationValueMatcher.group(1));
+                if (!vehicleState.isComplete()) {
+                  vehicleState.configure(configurationValueMatcher.group(2), message);
+                }
               }
             }
 
@@ -219,10 +236,10 @@ public class SaicMqttGateway implements Callable<Integer> {
             public void deliveryComplete(IMqttDeliveryToken token) {}
           });
 
-      var mqttAccountPrefix = "saic/" + saicUser;
-
       client.subscribe(mqttAccountPrefix + "/vehicles/+/+/+/set");
       client.subscribe(mqttAccountPrefix + "/vehicles/+/+/+/+/set");
+      client.subscribe(mqttAccountPrefix + "/vehicles/+/" + REFRESH_MODE);
+      client.subscribe(mqttAccountPrefix + "/vehicles/+/" + REFRESH_PERIOD + "/+");
 
       MessageCoder<MP_UserLoggingInReq> loginRequestMessageCoder =
           new MessageCoder<>(MP_UserLoggingInReq.class);
@@ -271,7 +288,8 @@ public class SaicMqttGateway implements Callable<Integer> {
                             loginResponseMessage.getBody().getUid(),
                             loginResponseMessage.getApplicationData().getToken(),
                             mqttAccountPrefix,
-                            vin);
+                            vin,
+                            getVehicleState(mqttAccountPrefix, vin.getVin()));
                     vehicleHandlerMap.put(vin.getVin(), handler);
                     return handler;
                   })
@@ -298,6 +316,13 @@ public class SaicMqttGateway implements Callable<Integer> {
         future.get();
       }
       return 0;
+    }
+  }
+
+  private VehicleState getVehicleState(String mqttAccountPrefix, String vin) {
+    synchronized (vehicleStateMap) {
+      return vehicleStateMap.computeIfAbsent(
+          vin, (v) -> new VehicleState(client, mqttAccountPrefix, v));
     }
   }
 
