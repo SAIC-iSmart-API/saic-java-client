@@ -88,9 +88,9 @@ public class VehicleHandler {
             msg.setQos(0);
             msg.setRetained(true);
             client.publish(mqttVINPrefix + "/" + INTERNAL_ABRP, msg);
-            vehicleState.markSuccessfulRefresh();
-            LOGGER.info("Refreshing vehicle status succeeded...");
           }
+          vehicleState.markSuccessfulRefresh();
+          LOGGER.info("Refreshing vehicle status succeeded...");
 
         } catch (MqttGatewayException e) {
           LOGGER.warn(e.getMessage());
