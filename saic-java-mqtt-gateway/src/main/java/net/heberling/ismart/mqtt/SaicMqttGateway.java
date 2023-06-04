@@ -196,7 +196,7 @@ public class SaicMqttGateway implements Callable<Integer> {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
-              LOGGER.debug("Got message for topic {}: {}", topic, message);
+              LOGGER.info("Got message for topic {}: {}", topic, message);
               final Matcher matcher =
                   Pattern.compile(".*/vehicles/([^/]*)/(.*)/set").matcher(topic);
               if (matcher.matches()) {
