@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Breaking** The default refresh rate while the car is active has been changed to 30 seconds
   - **Breaking** The default refresh rate while the car is inactive has been changed to 24 hours
   - support configuring `refresh/mode`, `refresh/period/active`, `refresh/period/inActive` and `refresh/period/inActiveGrace` via MQTT
+
+### Fixed
+- MQTT
+  - keep message fetch thread alive after connection failures
+
 ### Dependencies
 - Bump `version.picocli` from 4.7.3 to 4.7.4 (#29)
 - Bump `maven-failsafe-plugin` from 3.1.0 to 3.1.2 (#30)
@@ -25,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - MQTT
   - calculate correct tyre pressure
+
 ### Dependencies
 - Bump `testcontainers-bom` from 1.18.1 to 1.18.3 (#27)
 - Bump `maven-source-plugin` from 3.2.1 to 3.3.0 (#23)
