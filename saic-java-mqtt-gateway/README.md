@@ -29,19 +29,59 @@ The ABRP_USER_TOKEN is optional. If you provide it, the gateway will also publis
 
 For the token, add comma-sepparated entries for each vehicle like this: {VIN=token,VIN2=token2,...}
 
-### 2. Run from command line
+### 2. Debian Package
 
-You can also run the gateway from the command line. For this, you need to build the jar file first.
+Download the Debian package `saic-ismart-mqtt-gateway-VERSION.deb` from https://github.com/SAIC-iSmart-API/saic-java-client/releases/latest.
 
-From the parent project, run:
-```
-mvn package
+Install the MQTT gateway with apt:
+
+```bash
+apt-get install saic-ismart-mqtt-gateway-VERSION.deb
 ```
 
-If everything goes right, you will have a jar file (saic-ismart-mqtt-gateway-0.0.0-SNAPSHOT-full.jar) 
-in the target folder. You can run it with the following command:
+Configure the MQTT gateway in `/etc/saic-mqtt-gateway.toml`:
+
+```toml
+[mqtt]
+uri = "tcp://localhost:1883"
+username = "mqtt_user"
+password = "mqtt_pass"
+
+[saic]
+uri = "https://tap-eu.soimt.com"
+username = "ismart_user"
+password = "ismart_password"
+
+[abrp]
+api-key = "8cfc314b-03cd-4efe-ab7d-4431cd8f2e2d"
+
+[[abrp.token]]
+"vin1" = "token1"
+
+[[abrp.token]]
+"vin2" = "token2"
 ```
-java -jar saic-ismart-mqtt-gateway-0.0.0-SNAPSHOT-full.jar \
+
+Enable and start the gateway:
+
+```bash
+systemctl enable saic-mqtt-gateway
+systemctl start saic-mqtt-gateway
+```
+
+You can check the log output with
+
+```bash
+journalctl -u saic-mqtt-gateway -f
+```
+
+### 3. Run from command line
+
+Download the full-jar package `saic-ismart-mqtt-gateway-VERSION-full.jar` from https://github.com/SAIC-iSmart-API/saic-java-client/releases/latest.
+
+You can run it with the following command:
+```bash
+java -jar saic-ismart-mqtt-gateway-VERSION-full.jar \
     --saic-user={your saic user} \
     --saic-password={your saic password} \
     --mqtt-uri={your mqtt broker uri} \
@@ -65,16 +105,16 @@ as a starting point: https://github.com/vvatelot/mosquitto-docker-compose
 The gateway supports the following commands from mqtt topics:
 
 Base topic is always:
-    saic/{saic-user}/vehicles/{vin}
+    `saic/{saic-user}/vehicles/{vin}`
 
-* drivetrain/hvBatteryActive {true|false}
-* climate/remoteClimateState {true|false}
-* doors/locked {true|false}
-* refresh/mode {periodic|off|force}
-* refresh/period/active {seconds} -> Interval in seconds to poll the car state when hvBattery is active (30s default)
-* refresh/period/inActive {seconds} -> Interval in seconds to poll the car state when hvBattery is inActive (86400s default)
-* refresh/period/inActiveGrace {seconds} -> -> Interval in seconds handle car state as active after hvBattery was disconnected (600s default)
+* `drivetrain/hvBatteryActive` {true|false}
+* `climate/remoteClimateState` {true|false}
+* `doors/locked` {true|false}
+* `refresh/mode` {periodic|off|force}
+* `refresh/period/active` {seconds} -> Interval in seconds to poll the car state when hvBattery is active (30s default)
+* `refresh/period/inActive` {seconds} -> Interval in seconds to poll the car state when hvBattery is inActive (86400s default)
+* `refresh/period/inActiveGrace` {seconds} -> -> Interval in seconds handle car state as active after hvBattery was disconnected (600s default)
 
-To set these values, just post a message to the corresponding topic plus "/set" with the desired value. 
+To set these values, just post a message to the corresponding topic plus `/set` with the desired value. 
 
 Further commands will be supported in the future.
