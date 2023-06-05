@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Breaking** The default refresh rate while the car is active has been changed to 30 seconds
   - **Breaking** The default refresh rate while the car is inactive has been changed to 24 hours
   - support configuring `refresh/mode`, `refresh/period/active`, `refresh/period/inActive` and `refresh/period/inActiveGrace` via MQTT
+### Dependencies
+- Bump `version.picocli` from 4.7.3 to 4.7.4 (#29)
 
 ## [0.2.1] - 2023-06-03
 ### Fixed
