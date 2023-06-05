@@ -80,7 +80,7 @@ class MessageHandler implements Runnable {
         // logger.warn("No application data found!");
       }
     } catch (IOException | MqttException e) {
-      throw new RuntimeException(e);
+      LOGGER.error("Failed to retrieve messages. Will retry.", e);
     }
   }
 
