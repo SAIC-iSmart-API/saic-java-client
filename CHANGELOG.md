@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - support configuring `refresh/mode`, `refresh/period/active`, `refresh/period/inActive` and `refresh/period/inActiveGrace` via MQTT
 ### Dependencies
 - Bump `version.picocli` from 4.7.3 to 4.7.4 (#29)
+- Bump `maven-failsafe-plugin` from 3.1.0 to 3.1.2 (#30)
 
 ## [0.2.1] - 2023-06-03
 ### Fixed
