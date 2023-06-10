@@ -23,6 +23,9 @@ import net.heberling.ismart.asn1.v2_1.entity.OTA_RVCStatus25857;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusReq;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusResp25857;
 import net.heberling.ismart.asn1.v2_1.entity.RvcReqParam;
+import net.heberling.ismart.asn1.v3_0.Message;
+import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgCtrlReq;
+import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgCtrlStsResp;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
 import org.bn.coders.IASN1PreparedElement;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
@@ -345,6 +348,74 @@ public class VehicleHandler {
             SaicMqttGateway.anonymized(otaRvcStatus25857MessageCoder, sendCommandReqestMessage)));
   }
 
+  private void sendCharging(boolean state)
+      throws URISyntaxException,
+          ExecutionException,
+          InterruptedException,
+          TimeoutException,
+          MqttException,
+          IOException {
+    net.heberling.ismart.asn1.v3_0.MessageCoder<OTA_ChrgCtrlReq> otaRvcReqMessageCoder =
+        new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgCtrlReq.class);
+
+    // we send a command end expect the car to wake up
+    vehicleState.notifyCarActivityTime(ZonedDateTime.now(), false);
+
+    OTA_ChrgCtrlReq req = new OTA_ChrgCtrlReq();
+    req.setTboxV2XReq(0);
+    req.setTboxEleccLckCtrlReq(0);
+    req.setChrgCtrlReq(state ? 1 : 2);
+
+    Message<OTA_ChrgCtrlReq> sendCommandRequest =
+        otaRvcReqMessageCoder.initializeMessage(uid, token, vinInfo.getVin(), "516", 768, 7, req);
+
+    String sendCommandRequestMessage = otaRvcReqMessageCoder.encodeRequest(sendCommandRequest);
+
+    String sendCommandResponseMessage =
+        Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv30"), sendCommandRequestMessage);
+
+    final net.heberling.ismart.asn1.v3_0.MessageCoder<OTA_ChrgCtrlStsResp>
+        otaRvcStatus25857MessageCoder =
+            new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgCtrlStsResp.class);
+    net.heberling.ismart.asn1.v3_0.Message<OTA_ChrgCtrlStsResp> sendCommandReqestMessage =
+        otaRvcStatus25857MessageCoder.decodeResponse(sendCommandResponseMessage);
+
+    // ... use that to request the data again, until we have it
+    // TODO: check for real errors (result!=0 and/or errorMessagePresent)
+    while (sendCommandReqestMessage.getApplicationData() == null) {
+      if (sendCommandReqestMessage.getBody().isErrorMessagePresent()) {
+        if (sendCommandReqestMessage.getBody().getResult() == 2) {
+          // TODO:
+          // getBridgeHandler().relogin();
+        }
+        throw new TimeoutException(
+            new String(sendCommandReqestMessage.getBody().getErrorMessage()));
+      }
+      SaicMqttGateway.fillReserved(sendCommandRequest.getReserved());
+
+      if (sendCommandReqestMessage.getBody().getResult() == 0) {
+        // we get an eventId back...
+        sendCommandRequest.getBody().setEventID(sendCommandReqestMessage.getBody().getEventID());
+      } else {
+        // try a fresh eventId
+        sendCommandRequest.getBody().setEventID(0);
+      }
+
+      sendCommandRequestMessage = otaRvcReqMessageCoder.encodeRequest(sendCommandRequest);
+
+      sendCommandResponseMessage =
+          Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv30"), sendCommandRequestMessage);
+
+      sendCommandReqestMessage =
+          otaRvcStatus25857MessageCoder.decodeResponse(sendCommandResponseMessage);
+    }
+
+    LOGGER.debug(
+        "Got SendCommand Response message: {}",
+        SaicMqttGateway.toJSON(
+            SaicMqttGateway.anonymized(otaRvcStatus25857MessageCoder, sendCommandReqestMessage)));
+  }
+
   public void handleMQTTCommand(String topic, MqttMessage message) throws MqttException {
     try {
       if (message.isRetained()) {
@@ -358,6 +429,18 @@ public class VehicleHandler {
               break;
             case "false":
               vehicleState.setHVBatteryActive(false);
+              break;
+            default:
+              throw new MqttGatewayException("Unsupported payload " + message);
+          }
+          break;
+        case DRIVETRAIN_CHARGING:
+          switch (message.toString().toLowerCase()) {
+            case "true":
+              sendCharging(true);
+              break;
+            case "false":
+              sendCharging(false);
               break;
             default:
               throw new MqttGatewayException("Unsupported payload " + message);
