@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - API
   - ASN.1 Types for `OTA_ChrgCtrlReq` and `OTA_ChrgCtrlStsResp`
+- MQTT
+  - support starting/stopping charging via setting `drivetrain/charging`
 
 ### Changed
 - MQTT
