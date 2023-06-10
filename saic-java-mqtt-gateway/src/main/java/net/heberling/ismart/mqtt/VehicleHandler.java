@@ -23,6 +23,8 @@ import net.heberling.ismart.asn1.v2_1.entity.RvcReqParam;
 import net.heberling.ismart.asn1.v3_0.Message;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgCtrlReq;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgCtrlStsResp;
+import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgHeatReq;
+import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgHeatResp;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
 import org.bn.coders.IASN1PreparedElement;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
@@ -431,6 +433,72 @@ public class VehicleHandler {
             SaicMqttGateway.anonymized(otaRvcStatus25857MessageCoder, sendCommandReqestMessage)));
   }
 
+  private void sendChargeHeating(boolean state)
+      throws URISyntaxException,
+          ExecutionException,
+          InterruptedException,
+          TimeoutException,
+          MqttException,
+          IOException {
+    net.heberling.ismart.asn1.v3_0.MessageCoder<OTA_ChrgHeatReq> otaRvcReqMessageCoder =
+        new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgHeatReq.class);
+
+    // we send a command end expect the car to wake up
+    vehicleState.notifyCarActivityTime(OffsetDateTime.now(), false);
+
+    OTA_ChrgHeatReq req = new OTA_ChrgHeatReq();
+    req.setPtcHeatReq(state ? 1 : 2);
+
+    Message<OTA_ChrgHeatReq> sendCommandRequest =
+        otaRvcReqMessageCoder.initializeMessage(uid, token, vinInfo.getVin(), "516", 768, 9, req);
+
+    String sendCommandRequestMessage = otaRvcReqMessageCoder.encodeRequest(sendCommandRequest);
+
+    String sendCommandResponseMessage =
+        Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv30"), sendCommandRequestMessage);
+
+    final net.heberling.ismart.asn1.v3_0.MessageCoder<OTA_ChrgHeatResp>
+        otaRvcStatus25857MessageCoder =
+            new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgHeatResp.class);
+    net.heberling.ismart.asn1.v3_0.Message<OTA_ChrgHeatResp> sendCommandReqestMessage =
+        otaRvcStatus25857MessageCoder.decodeResponse(sendCommandResponseMessage);
+
+    // ... use that to request the data again, until we have it
+    // TODO: check for real errors (result!=0 and/or errorMessagePresent)
+    while (sendCommandReqestMessage.getApplicationData() == null) {
+      if (sendCommandReqestMessage.getBody().isErrorMessagePresent()) {
+        if (sendCommandReqestMessage.getBody().getResult() == 2) {
+          // TODO:
+          // getBridgeHandler().relogin();
+        }
+        throw new TimeoutException(
+            new String(sendCommandReqestMessage.getBody().getErrorMessage()));
+      }
+      SaicMqttGateway.fillReserved(sendCommandRequest.getReserved());
+
+      if (sendCommandReqestMessage.getBody().getResult() == 0) {
+        // we get an eventId back...
+        sendCommandRequest.getBody().setEventID(sendCommandReqestMessage.getBody().getEventID());
+      } else {
+        // try a fresh eventId
+        sendCommandRequest.getBody().setEventID(0);
+      }
+
+      sendCommandRequestMessage = otaRvcReqMessageCoder.encodeRequest(sendCommandRequest);
+
+      sendCommandResponseMessage =
+          Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv30"), sendCommandRequestMessage);
+
+      sendCommandReqestMessage =
+          otaRvcStatus25857MessageCoder.decodeResponse(sendCommandResponseMessage);
+    }
+
+    LOGGER.debug(
+        "Got SendCommand Response message: {}",
+        SaicMqttGateway.toJSON(
+            SaicMqttGateway.anonymized(otaRvcStatus25857MessageCoder, sendCommandReqestMessage)));
+  }
+
   public void handleMQTTCommand(String topic, MqttMessage message) throws MqttException {
     try {
       if (message.isRetained()) {
@@ -444,6 +512,18 @@ public class VehicleHandler {
               break;
             case "false":
               vehicleState.setHVBatteryActive(false);
+              break;
+            default:
+              throw new MqttGatewayException("Unsupported payload " + message);
+          }
+          break;
+        case DRIVETRAIN_HV_BATTERY_HEATING:
+          switch (message.toString().toLowerCase()) {
+            case "true":
+              sendChargeHeating(true);
+              break;
+            case "false":
+              sendChargeHeating(false);
               break;
             default:
               throw new MqttGatewayException("Unsupported payload " + message);

@@ -67,6 +67,16 @@ OTA_ChrgMangDataResp ::= SEQUENCE
   chargeStatus RvsChargingStatus(1),
   bmsAdpPubChrgSttnDspCmd INTEGER(0..255)
 }
+OTA_ChrgHeatReq ::= SEQUENCE
+{
+  ptcHeatReq INTEGER(0..255)
+}
+OTA_ChrgHeatResp ::= SEQUENCE
+{
+  ptcHeatReqDspCmd INTEGER(0..255),
+  ptcHeatResp INTEGER(0..255),
+  rvcReqSts OCTET STRING(SIZE(1))
+}
 RvsChargingStatus ::= SEQUENCE
 {
   realtimePower INTEGER(0..65535),

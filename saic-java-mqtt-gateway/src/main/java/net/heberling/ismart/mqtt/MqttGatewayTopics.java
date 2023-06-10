@@ -22,6 +22,7 @@ public class MqttGatewayTopics {
   public static final String DRIVETRAIN_CHARGING_TYPE = DRIVETRAIN + "/chargingType";
   public static final String DRIVETRAIN_CURRENT = DRIVETRAIN + "/current";
   public static final String DRIVETRAIN_HV_BATTERY_ACTIVE = DRIVETRAIN + "/hvBatteryActive";
+  public static final String DRIVETRAIN_HV_BATTERY_HEATING = DRIVETRAIN + "/hvBatteryHeating";
   public static final String DRIVETRAIN_MILEAGE = DRIVETRAIN + "/mileage";
   public static final String DRIVETRAIN_POWER = DRIVETRAIN + "/power";
   public static final String DRIVETRAIN_RANGE = DRIVETRAIN + "/range";
