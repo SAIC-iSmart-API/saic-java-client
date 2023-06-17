@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import net.heberling.ismart.Client;
 import net.heberling.ismart.asn1.v1_1.Message;
 import net.heberling.ismart.asn1.v1_1.MessageCoder;
@@ -89,7 +89,7 @@ class MessageHandler implements Runnable {
         message.getMessageId(),
         message.getMessageType(),
         new String(message.getTitle(), StandardCharsets.UTF_8),
-        ZonedDateTime.ofInstant(
+        OffsetDateTime.ofInstant(
             Instant.ofEpochSecond(message.getMessageTime().getSeconds()), ZoneId.systemDefault()),
         new String(message.getSender(), StandardCharsets.UTF_8),
         new String(message.getContent(), StandardCharsets.UTF_8),

@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -64,10 +64,10 @@ public class VehicleHandler {
   void handleVehicle() throws MqttException, IOException {
     vehicleState.configure(vinInfo);
     // we just got started, force some updates
-    ZonedDateTime startTime = ZonedDateTime.now();
+    OffsetDateTime startTime = OffsetDateTime.now();
     vehicleState.notifyCarActivityTime(startTime, true);
     while (true) {
-      if (!vehicleState.isComplete() && ZonedDateTime.now().isAfter(startTime.plusSeconds(10))) {
+      if (!vehicleState.isComplete() && OffsetDateTime.now().isAfter(startTime.plusSeconds(10))) {
         vehicleState.configureMissing();
       }
       if (vehicleState.isComplete() && vehicleState.shouldRefresh()) {
@@ -296,7 +296,7 @@ public class VehicleHandler {
     MessageCoder<OTA_RVCReq> otaRvcReqMessageCoder = new MessageCoder<>(OTA_RVCReq.class);
 
     // we send a command end expect the car to wake up
-    vehicleState.notifyCarActivityTime(ZonedDateTime.now(), false);
+    vehicleState.notifyCarActivityTime(OffsetDateTime.now(), false);
 
     OTA_RVCReq req = new OTA_RVCReq();
     req.setRvcReqType(new byte[] {type});
@@ -373,7 +373,7 @@ public class VehicleHandler {
         new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgCtrlReq.class);
 
     // we send a command end expect the car to wake up
-    vehicleState.notifyCarActivityTime(ZonedDateTime.now(), false);
+    vehicleState.notifyCarActivityTime(OffsetDateTime.now(), false);
 
     OTA_ChrgCtrlReq req = new OTA_ChrgCtrlReq();
     req.setTboxV2XReq(0);
