@@ -425,6 +425,12 @@ public class VehicleState {
     msg.setRetained(true);
     client.publish(mqttVINPrefix + "/" + DRIVETRAIN_VOLTAGE, msg);
 
+    int remainingChargeTime = (int) chargingStatusResponseMessage.getApplicationData().getChrgngRmnngTime();
+    msg = new MqttMessage((String.valueOf(remainingChargeTime)).getBytes(StandardCharsets.UTF_8));
+    msg.setQos(0);
+    msg.setRetained(true);
+    client.publish(mqttVINPrefix + "/" + DRIVETRAIN_REMAINING_CHARGE_TIME, msg);
+
     double power = current * voltage / 1000d;
     msg = new MqttMessage((String.valueOf(power)).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
