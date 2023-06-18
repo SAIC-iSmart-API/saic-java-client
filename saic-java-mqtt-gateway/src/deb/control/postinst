@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# ensure that a changed systemd configuration is picked up
+systemctl daemon-reload || true

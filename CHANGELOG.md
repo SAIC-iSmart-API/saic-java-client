@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Breaking** The default refresh rate while the car is inactive has been changed to 24 hours
   - support configuring `refresh/mode`, `refresh/period/active`, `refresh/period/inActive` and `refresh/period/inActiveGrace` via MQTT
   - Handle fallback for SOC when charge status update fails
+  - ensure that a changed systemd configuration is picked up
 - API
   - Handle fallback for SOC when charge status update fails
 
