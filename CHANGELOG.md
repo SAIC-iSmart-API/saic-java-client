@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `native-maven-plugin` from 0.9.22 to 0.9.23 (#40)
 - Bump `maven-shade-plugin` from 3.4.1 to 3.5.0 (#38)
 - Bump `mockito-junit-jupiter` from 5.3.1 to 5.4.0 (#39)
+- Bump `mockito-core` from 5.3.1 to 5.4.0 (#37)
 
 ## [0.2.1] - 2023-06-03
 ### Fixed
