@@ -27,7 +27,8 @@ public class VehicleStateTest {
   @BeforeEach
   public void setUp() throws MqttException {
     clock = Clock.fixed(Instant.ofEpochSecond(REFERENCE_TIME), ZoneId.systemDefault());
-    vehicleState = new VehicleState(mqttClient, "test", () -> this.clock);
+    vehicleState = new VehicleState(mqttClient, "test/topic", "test", () -> this.clock);
+    vehicleState.configureMissing();
     vehicleState.notifyCarActivityTime(ZonedDateTime.now(clock), true);
   }
 

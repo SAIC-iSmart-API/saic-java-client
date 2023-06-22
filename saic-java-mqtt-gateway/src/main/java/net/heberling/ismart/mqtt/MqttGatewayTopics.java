@@ -44,9 +44,10 @@ public class MqttGatewayTopics {
   public static final String REFRESH_LAST_CHARGE_STATE = REFRESH + "/lastChargeState";
   public static final String REFRESH_LAST_VEHICLE_STATE = REFRESH + "/lastVehicleState";
   public static final String REFRESH_MODE = REFRESH + "/mode";
-  public static final String REFRESH_PERIOD_ACTIVE = REFRESH + "/period/active";
-  public static final String REFRESH_PERIOD_INACTIVE = REFRESH + "/period/inActive";
-  public static final String REFRESH_PERIOD_INACTIVE_GRACE = REFRESH + "/period/inActiveGrace";
+  public static final String REFRESH_PERIOD = REFRESH + "/period";
+  public static final String REFRESH_PERIOD_ACTIVE = REFRESH_PERIOD + "/active";
+  public static final String REFRESH_PERIOD_INACTIVE = REFRESH_PERIOD + "/inActive";
+  public static final String REFRESH_PERIOD_INACTIVE_GRACE = REFRESH_PERIOD + "/inActiveGrace";
   public static final String TYRES = "tyres";
   public static final String TYRES_FRONT_LEFT_PRESSURE = TYRES + "/frontLeftPressure";
   public static final String TYRES_FRONT_RIGHT_PRESSURE = TYRES + "/frontRightPressure";

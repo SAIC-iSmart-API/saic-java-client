@@ -33,25 +33,26 @@ public class VehicleState {
   private ZonedDateTime lastVehicleMessage;
   // treat HV battery as active, if we don't have any other information
   private boolean hvBatteryActive = true;
-  private long refreshPeriodActive;
-  private long refreshPeriodInactive;
-  private long refreshPeriodAfterShutdown;
+  private Long refreshPeriodActive;
+  private Long refreshPeriodInactive;
+  private Long refreshPeriodAfterShutdown;
   private RefreshMode refreshMode;
   private RefreshMode previousRefreshMode;
 
-  public VehicleState(IMqttClient client, String mqttVINPrefix) {
-    this(client, mqttVINPrefix, () -> Clock.systemDefaultZone());
+  public VehicleState(IMqttClient client, String mqttAccountPrefix, String vin) {
+    this(client, mqttAccountPrefix, vin, () -> Clock.systemDefaultZone());
   }
 
-  protected VehicleState(IMqttClient client, String mqttVINPrefix, Supplier<Clock> clockSupplier) {
+  protected VehicleState(
+      IMqttClient client, String mqttAccountPrefix, String vin, Supplier<Clock> clockSupplier) {
     this.client = client;
-    this.mqttVINPrefix = mqttVINPrefix;
+    this.mqttVINPrefix = mqttAccountPrefix + "/" + VEHICLES + "/" + vin;
     this.clockSupplier = clockSupplier;
     lastCarShutdown = ZonedDateTime.now(clockSupplier.get());
-    setRefreshPeriodActive(30);
-    setRefreshPeriodInactive(86400);
-    setRefreshPeriodAfterShutdown(600);
-    setRefreshMode(PERIODIC);
+  }
+
+  public String getMqttVINPrefix() {
+    return mqttVINPrefix;
   }
 
   public void handleVehicleStatusMessage(
@@ -579,47 +580,46 @@ public class VehicleState {
     }
   }
 
-  public long getRefreshPeriodActive() {
-    return refreshPeriodActive;
-  }
-
   public void setRefreshPeriodActive(long refreshPeriodActive) {
-    MqttMessage mqttMessage =
-        new MqttMessage(String.valueOf(refreshPeriodActive).getBytes(StandardCharsets.UTF_8));
-    try {
-      mqttMessage.setRetained(true);
-      this.client.publish(this.mqttVINPrefix + "/" + REFRESH_PERIOD_ACTIVE, mqttMessage);
-    } catch (MqttException e) {
-      throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
+    if (this.refreshPeriodActive == null || this.refreshPeriodActive != refreshPeriodActive) {
+      MqttMessage mqttMessage =
+          new MqttMessage(String.valueOf(refreshPeriodActive).getBytes(StandardCharsets.UTF_8));
+      try {
+        mqttMessage.setRetained(true);
+        this.client.publish(this.mqttVINPrefix + "/" + REFRESH_PERIOD_ACTIVE, mqttMessage);
+      } catch (MqttException e) {
+        throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
+      }
     }
     this.refreshPeriodActive = refreshPeriodActive;
   }
 
-  public long getRefreshPeriodInactive() {
-    return refreshPeriodInactive;
-  }
-
   public void setRefreshPeriodInactive(long refreshPeriodInactive) {
-    MqttMessage mqttMessage =
-        new MqttMessage(String.valueOf(refreshPeriodInactive).getBytes(StandardCharsets.UTF_8));
-    try {
-      mqttMessage.setRetained(true);
-      this.client.publish(this.mqttVINPrefix + "/" + REFRESH_PERIOD_INACTIVE, mqttMessage);
-    } catch (MqttException e) {
-      throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
+    if (this.refreshPeriodInactive == null || this.refreshPeriodInactive != refreshPeriodInactive) {
+      MqttMessage mqttMessage =
+          new MqttMessage(String.valueOf(refreshPeriodInactive).getBytes(StandardCharsets.UTF_8));
+      try {
+        mqttMessage.setRetained(true);
+        this.client.publish(this.mqttVINPrefix + "/" + REFRESH_PERIOD_INACTIVE, mqttMessage);
+      } catch (MqttException e) {
+        throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
+      }
     }
     this.refreshPeriodInactive = refreshPeriodInactive;
   }
 
   public void setRefreshMode(RefreshMode refreshMode) {
-    MqttMessage mqttMessage =
-        new MqttMessage(refreshMode.getStringValue().getBytes(StandardCharsets.UTF_8));
-    try {
-      LOGGER.info("Setting refresh mode to {}", refreshMode.getStringValue());
-      mqttMessage.setRetained(true);
-      this.client.publish(this.mqttVINPrefix + "/" + REFRESH_MODE, mqttMessage);
-    } catch (MqttException e) {
-      throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
+    if (this.refreshMode == null || this.refreshMode != refreshMode) {
+
+      MqttMessage mqttMessage =
+          new MqttMessage(refreshMode.getStringValue().getBytes(StandardCharsets.UTF_8));
+      try {
+        LOGGER.info("Setting refresh mode to {}", refreshMode.getStringValue());
+        mqttMessage.setRetained(true);
+        this.client.publish(this.mqttVINPrefix + "/" + REFRESH_MODE, mqttMessage);
+      } catch (MqttException e) {
+        throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
+      }
     }
     this.previousRefreshMode = this.refreshMode;
     this.refreshMode = refreshMode;
@@ -634,17 +634,81 @@ public class VehicleState {
   }
 
   public void setRefreshPeriodAfterShutdown(long refreshPeriodAfterShutdown) {
-    MqttMessage mqttMessage =
-        new MqttMessage(
-            String.valueOf(refreshPeriodAfterShutdown).getBytes(StandardCharsets.UTF_8));
-    try {
-      mqttMessage.setRetained(true);
-      this.client.publish(this.mqttVINPrefix + "/" + REFRESH_PERIOD_INACTIVE_GRACE, mqttMessage);
-    } catch (MqttException e) {
-      throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
-    }
+    if (this.refreshPeriodAfterShutdown == null
+        || this.refreshPeriodAfterShutdown != refreshPeriodAfterShutdown) {
 
+      MqttMessage mqttMessage =
+          new MqttMessage(
+              String.valueOf(refreshPeriodAfterShutdown).getBytes(StandardCharsets.UTF_8));
+      try {
+        mqttMessage.setRetained(true);
+        this.client.publish(this.mqttVINPrefix + "/" + REFRESH_PERIOD_INACTIVE_GRACE, mqttMessage);
+      } catch (MqttException e) {
+        throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
+      }
+    }
     this.refreshPeriodAfterShutdown = refreshPeriodAfterShutdown;
+  }
+
+  public boolean isComplete() {
+    return refreshPeriodActive != null
+        && refreshPeriodInactive != null
+        && refreshPeriodAfterShutdown != null
+        && refreshMode != null;
+  }
+
+  public void configureMissing() {
+    if (refreshPeriodActive == null) {
+      setRefreshPeriodActive(30L);
+    }
+    if (refreshPeriodInactive == null) {
+      setRefreshPeriodInactive(86400L);
+    }
+    if (refreshPeriodAfterShutdown == null) {
+      setRefreshPeriodAfterShutdown(600L);
+    }
+    if (refreshMode == null) {
+      setRefreshMode(PERIODIC);
+    }
+  }
+
+  public void configure(String topic, MqttMessage message) {
+    switch (topic) {
+      case REFRESH_MODE:
+        RefreshMode.get(message.toString())
+            .ifPresentOrElse(
+                this::setRefreshMode,
+                () -> {
+                  throw new MqttGatewayException("Unsupported payload " + message);
+                });
+        break;
+      case REFRESH_PERIOD_ACTIVE:
+        try {
+          long value = Long.valueOf(message.toString());
+          setRefreshPeriodActive(value);
+        } catch (NumberFormatException e) {
+          throw new MqttGatewayException("Error setting value for payload: " + message);
+        }
+        break;
+      case REFRESH_PERIOD_INACTIVE:
+        try {
+          long value = Long.valueOf(message.toString());
+          setRefreshPeriodInactive(value);
+        } catch (NumberFormatException e) {
+          throw new MqttGatewayException("Error setting value for payload: " + message);
+        }
+        break;
+      case REFRESH_PERIOD_INACTIVE_GRACE:
+        try {
+          long value = Long.valueOf(message.toString());
+          setRefreshPeriodAfterShutdown(value);
+        } catch (NumberFormatException e) {
+          throw new MqttGatewayException("Error setting value for payload: " + message);
+        }
+        break;
+      default:
+        throw new MqttGatewayException("Unsupported topic " + topic);
+    }
   }
 
   private Clock getClock() {

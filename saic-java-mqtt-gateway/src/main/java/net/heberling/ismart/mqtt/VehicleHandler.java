@@ -43,7 +43,6 @@ public class VehicleHandler {
   private final VinInfo vinInfo;
   private final SaicMqttGateway saicMqttGateway;
   private final IMqttClient client;
-  private final String mqttVINPrefix;
 
   private final VehicleState vehicleState;
 
@@ -54,24 +53,28 @@ public class VehicleHandler {
       String uid,
       String token,
       String mqttAccountPrefix,
-      VinInfo vinInfo) {
+      VinInfo vinInfo,
+      VehicleState vehicleState) {
 
     this.saicMqttGateway = saicMqttGateway;
     this.client = client;
     this.saicUri = saicUri;
     this.uid = uid;
     this.token = token;
-    this.mqttVINPrefix = mqttAccountPrefix + "/" + VEHICLES + "/" + vinInfo.getVin();
     this.vinInfo = vinInfo;
-    this.vehicleState = new VehicleState(client, mqttVINPrefix);
+    this.vehicleState = vehicleState;
   }
 
   void handleVehicle() throws MqttException, IOException {
     vehicleState.configure(vinInfo);
     // we just got started, force some updates
-    vehicleState.notifyCarActivityTime(ZonedDateTime.now(), true);
+    ZonedDateTime startTime = ZonedDateTime.now();
+    vehicleState.notifyCarActivityTime(startTime, true);
     while (true) {
-      if (vehicleState.shouldRefresh()) {
+      if (!vehicleState.isComplete() && ZonedDateTime.now().isAfter(startTime.plusSeconds(10))) {
+        vehicleState.configureMissing();
+      }
+      if (vehicleState.isComplete() && vehicleState.shouldRefresh()) {
 
         try {
 
@@ -90,7 +93,7 @@ public class VehicleHandler {
             MqttMessage msg = new MqttMessage(abrpResponse.getBytes(StandardCharsets.UTF_8));
             msg.setQos(0);
             msg.setRetained(true);
-            client.publish(mqttVINPrefix + "/" + INTERNAL_ABRP, msg);
+            client.publish(vehicleState.getMqttVINPrefix() + "/" + INTERNAL_ABRP, msg);
           }
           vehicleState.markSuccessfulRefresh();
           LOGGER.info("Refreshing vehicle status succeeded...");
@@ -486,45 +489,13 @@ public class VehicleHandler {
               throw new MqttGatewayException("Unsupported payload " + message);
           }
           break;
-        case REFRESH_MODE:
-          RefreshMode.get(message.toString())
-              .ifPresentOrElse(
-                  vehicleState::setRefreshMode,
-                  () -> {
-                    throw new MqttGatewayException("Unsupported payload " + message);
-                  });
-          break;
-        case REFRESH_PERIOD_ACTIVE:
-          try {
-            long value = Long.valueOf(message.toString());
-            vehicleState.setRefreshPeriodActive(value);
-          } catch (NumberFormatException e) {
-            throw new MqttGatewayException("Error setting value for payload: " + message);
-          }
-          break;
-        case REFRESH_PERIOD_INACTIVE:
-          try {
-            long value = Long.valueOf(message.toString());
-            vehicleState.setRefreshPeriodInactive(value);
-          } catch (NumberFormatException e) {
-            throw new MqttGatewayException("Error setting value for payload: " + message);
-          }
-          break;
-        case REFRESH_PERIOD_INACTIVE_GRACE:
-          try {
-            long value = Long.valueOf(message.toString());
-            vehicleState.setRefreshPeriodAfterShutdown(value);
-          } catch (NumberFormatException e) {
-            throw new MqttGatewayException("Error setting value for payload: " + message);
-          }
-          break;
         default:
-          throw new MqttGatewayException("Unsupported topic " + topic);
+          vehicleState.configure(topic, message);
       }
       MqttMessage msg = new MqttMessage("Success".getBytes(StandardCharsets.UTF_8));
       msg.setQos(0);
       msg.setRetained(false);
-      client.publish(mqttVINPrefix + "/" + topic + "/result", msg);
+      client.publish(vehicleState.getMqttVINPrefix() + "/" + topic + "/result", msg);
 
     } catch (URISyntaxException
         | ExecutionException
@@ -532,11 +503,12 @@ public class VehicleHandler {
         | TimeoutException
         | IOException
         | MqttGatewayException e) {
+      LOGGER.error("Command {} failed with {}.", topic, message, e);
       MqttMessage msg =
           new MqttMessage(("Command failed. " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
       msg.setQos(0);
       msg.setRetained(false);
-      client.publish(mqttVINPrefix + "/" + topic + "/result", msg);
+      client.publish(vehicleState.getMqttVINPrefix() + "/" + topic + "/result", msg);
     }
   }
 }
