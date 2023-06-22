@@ -1,6 +1,7 @@
 package net.heberling.ismart.mqtt;
 
 import static net.heberling.ismart.mqtt.MqttGatewayTopics.*;
+import static net.heberling.ismart.mqtt.RefreshMode.FORCE;
 
 import java.io.IOException;
 import java.net.URI;
@@ -507,6 +508,8 @@ public class VehicleHandler {
       msg.setQos(0);
       msg.setRetained(false);
       client.publish(vehicleState.getMqttVINPrefix() + "/" + topic + "/result", msg);
+
+      vehicleState.setRefreshMode(FORCE);
 
     } catch (URISyntaxException
         | ExecutionException

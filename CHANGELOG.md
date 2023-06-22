@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - MQTT
   - keep message fetch thread alive after connection failures
+  - Make sure car state is updated after successful command
 
 ### Dependencies
 - Bump `version.picocli` from 4.7.3 to 4.7.4 (#29)
