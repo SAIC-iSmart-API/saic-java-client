@@ -427,10 +427,8 @@ public class VehicleState {
     client.publish(mqttVINPrefix + "/" + DRIVETRAIN_VOLTAGE, msg);
 
     int remainingChargeTime = 0;
-    if (chargingStatusResponseMessage
-        .getApplicationData()
-        .getChargeStatus()
-        .isChargingDurationPresent()) {
+    if (chargingStatusResponseMessage.getApplicationData().getChargeStatus().getChargingGunState()
+        && current < 0) {
       remainingChargeTime = chargingStatusResponseMessage.getApplicationData().getChrgngRmnngTime();
     }
     msg = new MqttMessage((String.valueOf(remainingChargeTime)).getBytes(StandardCharsets.UTF_8));
