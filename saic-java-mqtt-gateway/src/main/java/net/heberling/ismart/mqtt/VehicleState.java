@@ -26,7 +26,7 @@ public class VehicleState {
   private static final Logger LOGGER = LoggerFactory.getLogger(VehicleState.class);
   private final IMqttClient client;
   private final String mqttVINPrefix;
-  private Supplier<Clock> clockSupplier;
+  private final Supplier<Clock> clockSupplier;
   private ZonedDateTime lastCarActivity;
   private ZonedDateTime lastSuccessfulRefresh;
   private ZonedDateTime lastCarShutdown;
@@ -40,7 +40,7 @@ public class VehicleState {
   private RefreshMode previousRefreshMode;
 
   public VehicleState(IMqttClient client, String mqttAccountPrefix, String vin) {
-    this(client, mqttAccountPrefix, vin, () -> Clock.systemDefaultZone());
+    this(client, mqttAccountPrefix, vin, Clock::systemDefaultZone);
   }
 
   protected VehicleState(
@@ -430,9 +430,8 @@ public class VehicleState {
     if (chargingStatusResponseMessage
         .getApplicationData()
         .getChargeStatus()
-        .getChargingGunState()) {
-      remainingChargeTime =
-          (int) chargingStatusResponseMessage.getApplicationData().getChrgngRmnngTime();
+        .isChargingDurationPresent()) {
+      remainingChargeTime = chargingStatusResponseMessage.getApplicationData().getChrgngRmnngTime();
     }
     msg = new MqttMessage((String.valueOf(remainingChargeTime)).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
@@ -684,7 +683,7 @@ public class VehicleState {
         break;
       case REFRESH_PERIOD_ACTIVE:
         try {
-          long value = Long.valueOf(message.toString());
+          long value = Long.parseLong(message.toString());
           setRefreshPeriodActive(value);
         } catch (NumberFormatException e) {
           throw new MqttGatewayException("Error setting value for payload: " + message);
@@ -692,7 +691,7 @@ public class VehicleState {
         break;
       case REFRESH_PERIOD_INACTIVE:
         try {
-          long value = Long.valueOf(message.toString());
+          long value = Long.parseLong(message.toString());
           setRefreshPeriodInactive(value);
         } catch (NumberFormatException e) {
           throw new MqttGatewayException("Error setting value for payload: " + message);
@@ -700,7 +699,7 @@ public class VehicleState {
         break;
       case REFRESH_PERIOD_INACTIVE_GRACE:
         try {
-          long value = Long.valueOf(message.toString());
+          long value = Long.parseLong(message.toString());
           setRefreshPeriodAfterShutdown(value);
         } catch (NumberFormatException e) {
           throw new MqttGatewayException("Error setting value for payload: " + message);

@@ -223,11 +223,11 @@ public class VehicleHandler {
         if (chargingStatusResponseMessage.getBody().getResult() == 2) {
           // TODO: relogn
         }
-        throw new MqttGatewayException(
-            "Refreshing Charging State from SAIC API failed with message: "
-                + new String(
-                    chargingStatusResponseMessage.getBody().getErrorMessage(),
-                    StandardCharsets.UTF_8));
+        LOGGER.error(
+            "Refreshing Charging State from SAIC API failed with message: {}",
+            new String(
+                chargingStatusResponseMessage.getBody().getErrorMessage(), StandardCharsets.UTF_8));
+        return null;
       }
 
       SaicMqttGateway.fillReserved(chargingStatusMessage.getReserved());
