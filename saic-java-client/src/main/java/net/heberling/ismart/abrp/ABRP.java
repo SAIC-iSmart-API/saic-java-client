@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusResp25857;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
@@ -32,15 +33,31 @@ public class ABRP {
       HashMap<String, Object> map = new HashMap<>();
       // utc [s]: Current UTC timestamp (epoch) in seconds (note, not milliseconds!)
       map.put("utc", vehicleStatus.getGpsPosition().getTimestamp4Short().getSeconds());
-      // soc [SoC %]: State of Charge of the vehicle (what's displayed on the dashboard of
-      // the vehicle is preferred)
-      map.put("soc", chargeStatus.getBmsPackSOCDsp() / 10.d);
-      // power [kW]: Instantaneous power output/input to the vehicle. Power output is
-      // positive, power input is negative (charging)
-      double current = chargeStatus.getBmsPackCrnt() * 0.05d - 1000.0d;
-      double voltage = (double) chargeStatus.getBmsPackVol() * 0.25d;
-      double power = current * voltage / 1000d;
-      map.put("power", power);
+
+      if(Objects.nonNull(chargeStatus)) {
+        // soc [SoC %]: State of Charge of the vehicle (what's displayed on the dashboard of
+        // the vehicle is preferred)
+        map.put("soc", chargeStatus.getBmsPackSOCDsp() / 10.d);
+        // power [kW]: Instantaneous power output/input to the vehicle. Power output is
+        // positive, power input is negative (charging)
+
+        // TODO: batt_temp [°C]: Battery temperature
+
+        double voltage = (double) chargeStatus.getBmsPackVol() * 0.25d;
+        // voltage [V]: Battery pack voltage
+        map.put("voltage", voltage);
+
+        double current = chargeStatus.getBmsPackCrnt() * 0.05d - 1000.0d;
+        // current [A]: Battery pack current (similar to power: output is
+        // positive, input (charging) is negative.)
+        map.put("current", current);
+
+        double power = current * voltage / 1000d;
+        map.put("power", power);
+      }
+      else {
+        map.put("soc", vehicleStatus.getBasicVehicleStatus().getExtendedData1());
+      }
       // speed [km/h]: Vehicle speed
       map.put("speed", vehicleStatus.getGpsPosition().getWayPoint().getSpeed() / 10.d);
       // lat [°]: Current vehicle latitude
@@ -80,12 +97,6 @@ public class ABRP {
       if (vehicleStatus.getBasicVehicleStatus().getExteriorTemperature() != -128) {
         map.put("ext_temp", vehicleStatus.getBasicVehicleStatus().getExteriorTemperature());
       }
-      // TODO: batt_temp [°C]: Battery temperature
-      // voltage [V]: Battery pack voltage
-      map.put("voltage", voltage);
-      // current [A]: Battery pack current (similar to power: output is
-      // positive, input (charging) is negative.)
-      map.put("current", current);
       // odometer [km]: Current odometer reading in km.
       if (vehicleStatus.getBasicVehicleStatus().getMileage() > 0) {
         map.put("odometer", vehicleStatus.getBasicVehicleStatus().getMileage() / 10.d);
