@@ -7,11 +7,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import net.heberling.ismart.Client;
@@ -84,16 +80,16 @@ public class VehicleHandler {
           OTA_ChrgMangDataResp chargeStatus = updateChargeStatus(uid, token, vinInfo.getVin());
           final String abrpApiKey = saicMqttGateway.getAbrpApiKey();
           final String abrpUserToken = saicMqttGateway.getAbrpUserToken(vinInfo.getVin());
-          if (abrpApiKey != null
-              && abrpUserToken != null
-              && vehicleStatus != null
-              && chargeStatus != null) {
+          if (abrpApiKey != null && abrpUserToken != null && vehicleStatus != null) {
             String abrpResponse =
                 ABRP.updateAbrp(abrpApiKey, abrpUserToken, vehicleStatus, chargeStatus);
             MqttMessage msg = new MqttMessage(abrpResponse.getBytes(StandardCharsets.UTF_8));
             msg.setQos(0);
             msg.setRetained(true);
             client.publish(vehicleState.getMqttVINPrefix() + "/" + INTERNAL_ABRP, msg);
+          }
+          if (Objects.isNull(chargeStatus)) {
+            updateFallbackChargeStateData(vehicleStatus);
           }
           vehicleState.markSuccessfulRefresh();
           LOGGER.info("Refreshing vehicle status succeeded...");
@@ -111,6 +107,21 @@ public class VehicleHandler {
         }
       }
     }
+  }
+
+  private void updateFallbackChargeStateData(OTA_RVMVehicleStatusResp25857 vehicleStatus)
+      throws MqttException {
+    LOGGER.warn("Extracting SOC from vehicle status as charge state update failed...");
+    MqttMessage msg =
+        new MqttMessage(
+            vehicleStatus
+                .getBasicVehicleStatus()
+                .getExtendedData1()
+                .toString()
+                .getBytes(StandardCharsets.UTF_8));
+    msg.setQos(0);
+    msg.setRetained(true);
+    client.publish(vehicleState.getMqttVINPrefix() + "/" + DRIVETRAIN_SOC, msg);
   }
 
   private OTA_RVMVehicleStatusResp25857 updateVehicleStatus(String uid, String token, String vin)
