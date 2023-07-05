@@ -14,7 +14,7 @@ Implementation of the SAIC API in Java.
 
 ## Documentation
 
-[SAIC API Documentation](documentation)
+[SAIC API Documentation](https://github.com/SAIC-iSmart-API/documentation)
 
 
 ## Usage
