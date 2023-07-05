@@ -82,7 +82,7 @@
                 <argument>-o</argument>
                 <argument>${project.build.directory}/generated-sources/asn1-java/net/heberling/ismart/asn1/v1_1</argument>
                 <argument>-f</argument>
-                <argument>${project.basedir}/../ASN.1 schema/v1_1/MP_DispatcherHeader.asn1</argument>
+                <argument>${project.basedir}/../documentation/ASN.1 schema/v1_1/MP_DispatcherHeader.asn1</argument>
                 <argument>-ns</argument>
                 <argument>net.heberling.ismart.asn1.v1_1</argument>
               </arguments>
@@ -102,7 +102,7 @@
                 <argument>-o</argument>
                 <argument>${project.build.directory}/generated-sources/asn1-java/net/heberling/ismart/asn1/v1_1</argument>
                 <argument>-f</argument>
-                <argument>${project.basedir}/../ASN.1 schema/v1_1/MP_DispatcherBody.asn1</argument>
+                <argument>${project.basedir}/../documentation/ASN.1 schema/v1_1/MP_DispatcherBody.asn1</argument>
                 <argument>-ns</argument>
                 <argument>net.heberling.ismart.asn1.v1_1</argument>
               </arguments>
@@ -122,7 +122,7 @@
                 <argument>-o</argument>
                 <argument>${project.build.directory}/generated-sources/asn1-java/net/heberling/ismart/asn1/v1_1/entity</argument>
                 <argument>-f</argument>
-                <argument>${project.basedir}/../ASN.1 schema/v1_1/ApplicationData.asn1</argument>
+                <argument>${project.basedir}/../documentation/ASN.1 schema/v1_1/ApplicationData.asn1</argument>
                 <argument>-ns</argument>
                 <argument>net.heberling.ismart.asn1.v1_1.entity</argument>
               </arguments>
@@ -142,7 +142,7 @@
                 <argument>-o</argument>
                 <argument>${project.build.directory}/generated-sources/asn1-java/net/heberling/ismart/asn1/v2_1</argument>
                 <argument>-f</argument>
-                <argument>${project.basedir}/../ASN.1 schema/v2_1/MP_DispatcherHeader.asn1</argument>
+                <argument>${project.basedir}/../documentation/ASN.1 schema/v2_1/MP_DispatcherHeader.asn1</argument>
                 <argument>-ns</argument>
                 <argument>net.heberling.ismart.asn1.v2_1</argument>
               </arguments>
@@ -162,7 +162,7 @@
                 <argument>-o</argument>
                 <argument>${project.build.directory}/generated-sources/asn1-java/net/heberling/ismart/asn1/v2_1</argument>
                 <argument>-f</argument>
-                <argument>${project.basedir}/../ASN.1 schema/v2_1/MP_DispatcherBody.asn1</argument>
+                <argument>${project.basedir}/../documentation/ASN.1 schema/v2_1/MP_DispatcherBody.asn1</argument>
                 <argument>-ns</argument>
                 <argument>net.heberling.ismart.asn1.v2_1</argument>
               </arguments>
@@ -182,7 +182,7 @@
                 <argument>-o</argument>
                 <argument>${project.build.directory}/generated-sources/asn1-java/net/heberling/ismart/asn1/v2_1/entity</argument>
                 <argument>-f</argument>
-                <argument>${project.basedir}/../ASN.1 schema/v2_1/ApplicationData.asn1</argument>
+                <argument>${project.basedir}/../documentation/ASN.1 schema/v2_1/ApplicationData.asn1</argument>
                 <argument>-ns</argument>
                 <argument>net.heberling.ismart.asn1.v2_1.entity</argument>
               </arguments>
@@ -202,7 +202,7 @@
                 <argument>-o</argument>
                 <argument>${project.build.directory}/generated-sources/asn1-java/net/heberling/ismart/asn1/v3_0</argument>
                 <argument>-f</argument>
-                <argument>${project.basedir}/../ASN.1 schema/v3_0/MP_DispatcherHeader.asn1</argument>
+                <argument>${project.basedir}/../documentation/ASN.1 schema/v3_0/MP_DispatcherHeader.asn1</argument>
                 <argument>-ns</argument>
                 <argument>net.heberling.ismart.asn1.v3_0</argument>
               </arguments>
@@ -222,7 +222,7 @@
                 <argument>-o</argument>
                 <argument>${project.build.directory}/generated-sources/asn1-java/net/heberling/ismart/asn1/v3_0</argument>
                 <argument>-f</argument>
-                <argument>${project.basedir}/../ASN.1 schema/v3_0/MP_DispatcherBody.asn1</argument>
+                <argument>${project.basedir}/../documentation/ASN.1 schema/v3_0/MP_DispatcherBody.asn1</argument>
                 <argument>-ns</argument>
                 <argument>net.heberling.ismart.asn1.v3_0</argument>
               </arguments>
@@ -242,7 +242,7 @@
                 <argument>-o</argument>
                 <argument>${project.build.directory}/generated-sources/asn1-java/net/heberling/ismart/asn1/v3_0/entity</argument>
                 <argument>-f</argument>
-                <argument>${project.basedir}/../ASN.1 schema/v3_0/ApplicationData.asn1</argument>
+                <argument>${project.basedir}/../documentation/ASN.1 schema/v3_0/ApplicationData.asn1</argument>
                 <argument>-ns</argument>
                 <argument>net.heberling.ismart.asn1.v3_0.entity</argument>
               </arguments>

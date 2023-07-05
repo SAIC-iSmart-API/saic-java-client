@@ -12,6 +12,11 @@ Implementation of the SAIC API in Java.
 
 ![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/SAIC-iSmart-API/saic-java-client/maven.yml)
 
+## Documentation
+
+[SAIC API Documentation](documentation)
+
+
 ## Usage
 
 [MQTT Gateway](saic-java-mqtt-gateway)
@@ -29,6 +34,12 @@ Go to the project directory
 
 ```bash
 cd saic-java-client
+```
+
+Checkout submodules
+```bash
+git submodule init
+git submodule update
 ```
 
 Build and test
