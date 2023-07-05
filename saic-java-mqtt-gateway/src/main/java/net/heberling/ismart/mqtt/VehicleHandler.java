@@ -21,9 +21,9 @@ import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusReq;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusResp25857;
 import net.heberling.ismart.asn1.v2_1.entity.RvcReqParam;
 import net.heberling.ismart.asn1.v3_0.Message;
-import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgCtrlReq;
-import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgCtrlStsResp;
-import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
+import net.heberling.ismart.asn1.v3_0.entity.OTAChrgCtrlReq;
+import net.heberling.ismart.asn1.v3_0.entity.OTAChrgCtrlStsResp;
+import net.heberling.ismart.asn1.v3_0.entity.OTAChrgMangDataResp;
 import org.bn.coders.IASN1PreparedElement;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -78,7 +78,7 @@ public class VehicleHandler {
           OTA_RVMVehicleStatusResp25857 vehicleStatus =
               updateVehicleStatus(uid, token, vinInfo.getVin());
 
-          OTA_ChrgMangDataResp chargeStatus = updateChargeStatus(uid, token, vinInfo.getVin());
+          OTAChrgMangDataResp chargeStatus = updateChargeStatus(uid, token, vinInfo.getVin());
           final String abrpApiKey = saicMqttGateway.getAbrpApiKey();
           final String abrpUserToken = saicMqttGateway.getAbrpUserToken(vinInfo.getVin());
           if (abrpApiKey != null && abrpUserToken != null && vehicleStatus != null) {
@@ -193,7 +193,7 @@ public class VehicleHandler {
     return vehicleStatusResponseMessage.getApplicationData();
   }
 
-  private OTA_ChrgMangDataResp updateChargeStatus(String uid, String token, String vin)
+  private OTAChrgMangDataResp updateChargeStatus(String uid, String token, String vin)
       throws IOException, MqttException {
     net.heberling.ismart.asn1.v3_0.MessageCoder<IASN1PreparedElement>
         chargingStatusRequestMessageEncoder =
@@ -213,14 +213,14 @@ public class VehicleHandler {
     String chargingStatusResponse =
         Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv30"), chargingStatusRequestMessage);
 
-    net.heberling.ismart.asn1.v3_0.Message<OTA_ChrgMangDataResp> chargingStatusResponseMessage =
-        new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgMangDataResp.class)
+    net.heberling.ismart.asn1.v3_0.Message<OTAChrgMangDataResp> chargingStatusResponseMessage =
+        new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTAChrgMangDataResp.class)
             .decodeResponse(chargingStatusResponse);
 
     LOGGER.debug(
         SaicMqttGateway.toJSON(
             SaicMqttGateway.anonymized(
-                new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgMangDataResp.class),
+                new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTAChrgMangDataResp.class),
                 chargingStatusResponseMessage)));
 
     // we get an eventId back...
@@ -255,13 +255,13 @@ public class VehicleHandler {
           Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv30"), chargingStatusRequestMessage);
 
       chargingStatusResponseMessage =
-          new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgMangDataResp.class)
+          new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTAChrgMangDataResp.class)
               .decodeResponse(chargingStatusResponse);
 
       LOGGER.debug(
           SaicMqttGateway.toJSON(
               SaicMqttGateway.anonymized(
-                  new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgMangDataResp.class),
+                  new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTAChrgMangDataResp.class),
                   chargingStatusResponseMessage)));
     }
     vehicleState.handleChargeStatusMessage(chargingStatusResponseMessage);
@@ -393,15 +393,15 @@ public class VehicleHandler {
           TimeoutException,
           MqttException,
           IOException {
-    net.heberling.ismart.asn1.v3_0.MessageCoder<OTA_ChrgCtrlReq> otaRvcReqMessageCoder =
-        new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgCtrlReq.class);
+    net.heberling.ismart.asn1.v3_0.MessageCoder<OTAChrgCtrlReq> otaRvcReqMessageCoder =
+        new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTAChrgCtrlReq.class);
 
-    OTA_ChrgCtrlReq req = new OTA_ChrgCtrlReq();
+    OTAChrgCtrlReq req = new OTAChrgCtrlReq();
     req.setTboxV2XReq(0);
     req.setTboxEleccLckCtrlReq(0);
     req.setChrgCtrlReq(state ? 1 : 2);
 
-    Message<OTA_ChrgCtrlReq> sendCommandRequest =
+    Message<OTAChrgCtrlReq> sendCommandRequest =
         otaRvcReqMessageCoder.initializeMessage(uid, token, vinInfo.getVin(), "516", 768, 7, req);
 
     String sendCommandRequestMessage = otaRvcReqMessageCoder.encodeRequest(sendCommandRequest);
@@ -409,10 +409,10 @@ public class VehicleHandler {
     String sendCommandResponseMessage =
         Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv30"), sendCommandRequestMessage);
 
-    final net.heberling.ismart.asn1.v3_0.MessageCoder<OTA_ChrgCtrlStsResp>
+    final net.heberling.ismart.asn1.v3_0.MessageCoder<OTAChrgCtrlStsResp>
         otaRvcStatus25857MessageCoder =
-            new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgCtrlStsResp.class);
-    net.heberling.ismart.asn1.v3_0.Message<OTA_ChrgCtrlStsResp> sendCommandReqestMessage =
+            new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTAChrgCtrlStsResp.class);
+    net.heberling.ismart.asn1.v3_0.Message<OTAChrgCtrlStsResp> sendCommandReqestMessage =
         otaRvcStatus25857MessageCoder.decodeResponse(sendCommandResponseMessage);
 
     // ... use that to request the data again, until we have it
