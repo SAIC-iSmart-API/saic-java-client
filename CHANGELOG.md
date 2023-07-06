@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MQTT
   - **Breaking** The default refresh rate while the car is active has been changed to 30 seconds
   - **Breaking** The default refresh rate while the car is inactive has been changed to 24 hours
+  - **Breaking** encode dates as unquoted ISO 8601 strings with offset and without timezone
   - support configuring `refresh/mode`, `refresh/period/active`, `refresh/period/inActive` and `refresh/period/inActiveGrace` via MQTT
   - Handle fallback for SOC when charge status update fails
   - ensure that a changed systemd configuration is picked up
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - MQTT
   - keep message fetch thread alive after connection failures
+  - Make sure car state is updated after successful command
 
 ### Dependencies
 - Bump `version.picocli` from 4.7.3 to 4.7.4 (#29)

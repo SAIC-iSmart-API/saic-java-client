@@ -6,7 +6,7 @@ import static net.heberling.ismart.mqtt.RefreshMode.PERIODIC;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,10 +27,10 @@ public class VehicleState {
   private final IMqttClient client;
   private final String mqttVINPrefix;
   private final Supplier<Clock> clockSupplier;
-  private ZonedDateTime lastCarActivity;
-  private ZonedDateTime lastSuccessfulRefresh;
-  private ZonedDateTime lastCarShutdown;
-  private ZonedDateTime lastVehicleMessage;
+  private OffsetDateTime lastCarActivity;
+  private OffsetDateTime lastSuccessfulRefresh;
+  private OffsetDateTime lastCarShutdown;
+  private OffsetDateTime lastVehicleMessage;
   // treat HV battery as active, if we don't have any other information
   private boolean hvBatteryActive = true;
   private Long refreshPeriodActive;
@@ -48,7 +48,7 @@ public class VehicleState {
     this.client = client;
     this.mqttVINPrefix = mqttAccountPrefix + "/" + VEHICLES + "/" + vin;
     this.clockSupplier = clockSupplier;
-    lastCarShutdown = ZonedDateTime.now(clockSupplier.get());
+    lastCarShutdown = OffsetDateTime.now(clockSupplier.get());
   }
 
   public String getMqttVINPrefix() {
@@ -373,8 +373,7 @@ public class VehicleState {
     }
 
     msg =
-        new MqttMessage(
-            SaicMqttGateway.toJSON(ZonedDateTime.now(getClock())).getBytes(StandardCharsets.UTF_8));
+        new MqttMessage(OffsetDateTime.now(getClock()).toString().getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
     client.publish(mqttVINPrefix + "/" + REFRESH_LAST_VEHICLE_STATE, msg);
@@ -476,19 +475,18 @@ public class VehicleState {
     client.publish(mqttVINPrefix + "/" + DRIVETRAIN_SOC, msg);
 
     msg =
-        new MqttMessage(
-            SaicMqttGateway.toJSON(ZonedDateTime.now(getClock())).getBytes(StandardCharsets.UTF_8));
+        new MqttMessage(OffsetDateTime.now(getClock()).toString().getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
     msg.setRetained(true);
     client.publish(mqttVINPrefix + "/" + REFRESH_LAST_CHARGE_STATE, msg);
   }
 
-  public void notifyCarActivityTime(ZonedDateTime now, boolean force) throws MqttException {
+  public void notifyCarActivityTime(OffsetDateTime now, boolean force) throws MqttException {
     // if the car activity changed, notify the channel
     if (lastCarActivity == null || force || lastCarActivity.isBefore(now)) {
       lastCarActivity = now;
       MqttMessage msg =
-          new MqttMessage(SaicMqttGateway.toJSON(lastCarActivity).getBytes(StandardCharsets.UTF_8));
+          new MqttMessage(lastCarActivity.toString().getBytes(StandardCharsets.UTF_8));
       msg.setQos(0);
       msg.setRetained(true);
       client.publish(mqttVINPrefix + "/" + REFRESH_LAST_ACTIVITY, msg);
@@ -532,19 +530,19 @@ public class VehicleState {
         if (hvBatteryActive
             || lastCarShutdown
                 .plus(refreshPeriodAfterShutdown, ChronoUnit.SECONDS)
-                .isAfter(ZonedDateTime.now(getClock()))) {
+                .isAfter(OffsetDateTime.now(getClock()))) {
           return lastSuccessfulRefresh.isBefore(
-              ZonedDateTime.now(getClock()).minus(refreshPeriodActive, ChronoUnit.SECONDS));
+              OffsetDateTime.now(getClock()).minus(refreshPeriodActive, ChronoUnit.SECONDS));
         } else {
           return lastSuccessfulRefresh.isBefore(
-              ZonedDateTime.now(getClock()).minus(refreshPeriodInactive, ChronoUnit.SECONDS));
+              OffsetDateTime.now(getClock()).minus(refreshPeriodInactive, ChronoUnit.SECONDS));
         }
     }
   }
 
   public void setHVBatteryActive(boolean hvBatteryActive) throws MqttException {
     if (!hvBatteryActive && this.hvBatteryActive) {
-      this.lastCarShutdown = ZonedDateTime.now(getClock());
+      this.lastCarShutdown = OffsetDateTime.now(getClock());
     }
     this.hvBatteryActive = hvBatteryActive;
 
@@ -555,7 +553,7 @@ public class VehicleState {
     client.publish(mqttVINPrefix + "/" + DRIVETRAIN_HV_BATTERY_ACTIVE, msg);
 
     if (hvBatteryActive) {
-      notifyCarActivityTime(ZonedDateTime.now(getClock()), true);
+      notifyCarActivityTime(OffsetDateTime.now(getClock()), true);
     }
   }
 
@@ -627,7 +625,7 @@ public class VehicleState {
   }
 
   public void markSuccessfulRefresh() {
-    this.lastSuccessfulRefresh = ZonedDateTime.now(getClock());
+    this.lastSuccessfulRefresh = OffsetDateTime.now(getClock());
   }
 
   public void setRefreshPeriodAfterShutdown(long refreshPeriodAfterShutdown) {

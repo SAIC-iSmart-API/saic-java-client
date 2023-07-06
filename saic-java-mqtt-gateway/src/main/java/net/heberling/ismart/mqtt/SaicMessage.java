@@ -1,6 +1,6 @@
 package net.heberling.ismart.mqtt;
 
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 
 public class SaicMessage {
 
@@ -10,7 +10,7 @@ public class SaicMessage {
 
   private final String title;
 
-  private final ZonedDateTime messageTime;
+  private final OffsetDateTime messageTime;
 
   private final String sender;
 
@@ -26,7 +26,7 @@ public class SaicMessage {
       Long messageId,
       String messageType,
       String title,
-      ZonedDateTime messageTime,
+      OffsetDateTime messageTime,
       String sender,
       String content,
       Integer readStatus,
@@ -53,7 +53,7 @@ public class SaicMessage {
     return title;
   }
 
-  public ZonedDateTime getMessageTime() {
+  public OffsetDateTime getMessageTime() {
     return messageTime;
   }
 

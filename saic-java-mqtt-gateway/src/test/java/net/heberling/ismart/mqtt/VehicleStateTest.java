@@ -5,8 +5,8 @@ import static org.junit.Assert.assertThat;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +29,7 @@ public class VehicleStateTest {
     clock = Clock.fixed(Instant.ofEpochSecond(REFERENCE_TIME), ZoneId.systemDefault());
     vehicleState = new VehicleState(mqttClient, "test/topic", "test", () -> this.clock);
     vehicleState.configureMissing();
-    vehicleState.notifyCarActivityTime(ZonedDateTime.now(clock), true);
+    vehicleState.notifyCarActivityTime(OffsetDateTime.now(clock), true);
   }
 
   @Test
@@ -40,7 +40,7 @@ public class VehicleStateTest {
   @Test
   public void willRefreshIfCarWasActiveAfterLastRefresh() throws MqttException {
     clock = Clock.offset(clock, java.time.Duration.ofSeconds(60));
-    vehicleState.notifyCarActivityTime(ZonedDateTime.now(clock), true);
+    vehicleState.notifyCarActivityTime(OffsetDateTime.now(clock), true);
     assertThat(vehicleState.shouldRefresh(), is(true));
   }
 
