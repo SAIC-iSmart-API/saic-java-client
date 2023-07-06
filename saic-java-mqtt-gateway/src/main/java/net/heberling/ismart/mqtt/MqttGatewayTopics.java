@@ -28,7 +28,7 @@ public class MqttGatewayTopics {
   public static final String DRIVETRAIN_RUNNING = DRIVETRAIN + "/running";
   public static final String DRIVETRAIN_SOC = DRIVETRAIN + "/soc";
   public static final String DRIVETRAIN_VOLTAGE = DRIVETRAIN + "/voltage";
-  public static final String DRIVETRAIN_REMAINING_CHARGE_TIME = DRIVETRAIN + "/remainingChargeTime";
+  public static final String DRIVETRAIN_REMAINING_CHARGING_TIME = DRIVETRAIN + "/remainingChargingTime";
   public static final String INFO = "info";
   public static final String INFO_CONFIGURATION = INFO + "/configuration";
   public static final String INFO_LAST_MESSAGE = INFO + "/lastMessage";
