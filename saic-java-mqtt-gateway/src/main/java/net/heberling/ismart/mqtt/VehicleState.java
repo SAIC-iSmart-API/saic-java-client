@@ -383,6 +383,8 @@ public class VehicleState {
     switch (remoteClimateStatus) {
       case 0:
         return "off";
+      case 1:
+        return "blowingOnly";
       case 2:
         return "on";
       case 5:
