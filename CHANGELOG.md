@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - ASN.1 Types for `OTA_ChrgCtrlReq` and `OTA_ChrgCtrlStsResp`
 - MQTT
   - support starting/stopping charging via setting `drivetrain/charging`
+  - added topic `drivetrain/remainingChargingTime`
 
 ### Changed
 - MQTT
