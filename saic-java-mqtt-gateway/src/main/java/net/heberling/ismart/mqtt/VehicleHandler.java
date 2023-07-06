@@ -287,6 +287,27 @@ public class VehicleHandler {
             Map.of(19, new byte[] {command}, 20, new byte[] {temperature}, 255, new byte[] {0})));
   }
 
+  private void sendACBlowingCommand(boolean on)
+      throws URISyntaxException,
+          ExecutionException,
+          InterruptedException,
+          TimeoutException,
+          MqttException,
+          IOException {
+    sendCommand(
+        (byte) 6,
+        new TreeMap<>(
+            Map.of(
+                19,
+                new byte[] {(byte) (on ? 1 : 0)},
+                20,
+                new byte[] {0},
+                22,
+                new byte[] {(byte) (on ? 1 : 0)},
+                255,
+                new byte[] {0})));
+  }
+
   private void sendCommand(byte type, SortedMap<Integer, byte[]> parameter)
       throws URISyntaxException,
           ExecutionException,
@@ -471,6 +492,8 @@ public class VehicleHandler {
               break;
             case "front":
               sendACCommand((byte) 5, (byte) 8);
+            case "blowingOnly":
+              sendACBlowingCommand(true);
               break;
             default:
               throw new MqttGatewayException("Unsupported payload " + message);

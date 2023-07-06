@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - support configuring `refresh/mode`, `refresh/period/active`, `refresh/period/inActive` and `refresh/period/inActiveGrace` via MQTT
   - Handle fallback for SOC when charge status update fails
   - ensure that a changed systemd configuration is picked up
+  - support blowingOnly mode for `remoteClimateState`
 - API
   - Handle fallback for SOC when charge status update fails
 
