@@ -428,7 +428,8 @@ public class VehicleState {
     int remainingChargeTime = 0;
     if (chargingStatusResponseMessage.getApplicationData().getChargeStatus().getChargingGunState()
         && current < 0) {
-      remainingChargeTime = chargingStatusResponseMessage.getApplicationData().getChrgngRmnngTime() * 60;
+      remainingChargeTime =
+          chargingStatusResponseMessage.getApplicationData().getChrgngRmnngTime() * 60;
     }
     msg = new MqttMessage((String.valueOf(remainingChargeTime)).getBytes(StandardCharsets.UTF_8));
     msg.setQos(0);
