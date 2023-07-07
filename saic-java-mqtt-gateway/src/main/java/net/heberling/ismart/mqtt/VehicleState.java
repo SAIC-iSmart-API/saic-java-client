@@ -608,15 +608,20 @@ public class VehicleState {
 
   public void setRefreshMode(RefreshMode refreshMode) {
     if (this.refreshMode == null || this.refreshMode != refreshMode) {
+      LOGGER.info("Setting refresh mode to {}", refreshMode.getStringValue());
 
-      MqttMessage mqttMessage =
-          new MqttMessage(refreshMode.getStringValue().getBytes(StandardCharsets.UTF_8));
-      try {
-        LOGGER.info("Setting refresh mode to {}", refreshMode.getStringValue());
-        mqttMessage.setRetained(true);
-        this.client.publish(this.mqttVINPrefix + "/" + REFRESH_MODE, mqttMessage);
-      } catch (MqttException e) {
-        throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
+      if (refreshMode != FORCE) {
+        // never send force mode to MQTT.
+        // If we get restarted while force mode is active, the configuration from MQTT
+        // feature would enable force mode permanently and polling of the car never stops
+        MqttMessage mqttMessage =
+            new MqttMessage(refreshMode.getStringValue().getBytes(StandardCharsets.UTF_8));
+        try {
+          mqttMessage.setRetained(true);
+          this.client.publish(this.mqttVINPrefix + "/" + REFRESH_MODE, mqttMessage);
+        } catch (MqttException e) {
+          throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
+        }
       }
     }
     this.previousRefreshMode = this.refreshMode;
