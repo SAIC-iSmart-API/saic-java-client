@@ -1,7 +1,6 @@
 package net.heberling.ismart.mqtt;
 
-import static net.heberling.ismart.mqtt.MqttGatewayTopics.REFRESH_MODE;
-import static net.heberling.ismart.mqtt.MqttGatewayTopics.REFRESH_PERIOD;
+import static net.heberling.ismart.mqtt.MqttGatewayTopics.*;
 
 import com.fasterxml.jackson.dataformat.toml.TomlMapper;
 import com.owlike.genson.Context;
@@ -53,13 +52,7 @@ import net.heberling.ismart.cli.UTF8StringObjectWriter;
 import org.bn.annotations.ASN1Enum;
 import org.bn.annotations.ASN1Sequence;
 import org.bn.coders.IASN1PreparedElement;
-import org.eclipse.paho.client.mqttv3.IMqttClient;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -208,8 +201,6 @@ public class SaicMqttGateway implements Callable<Integer> {
               LOGGER.info("Got message for topic {}: {}", topic, message);
               final Matcher setValueMatcher =
                   Pattern.compile(".*/vehicles/([^/]*)/(.*)/set").matcher(topic);
-              final Matcher configurationValueMatcher =
-                  Pattern.compile(".*/vehicles/([^/]*)/(.*)").matcher(topic);
               if (setValueMatcher.matches()) {
                 new Thread(
                         () -> {
@@ -223,12 +214,6 @@ public class SaicMqttGateway implements Callable<Integer> {
                           }
                         })
                     .start();
-              } else if (configurationValueMatcher.matches()) {
-                VehicleState vehicleState =
-                    getVehicleState(mqttAccountPrefix, configurationValueMatcher.group(1));
-                if (!vehicleState.isComplete()) {
-                  vehicleState.configure(configurationValueMatcher.group(2), message);
-                }
               }
             }
 
@@ -238,8 +223,6 @@ public class SaicMqttGateway implements Callable<Integer> {
 
       client.subscribe(mqttAccountPrefix + "/vehicles/+/+/+/set");
       client.subscribe(mqttAccountPrefix + "/vehicles/+/+/+/+/set");
-      client.subscribe(mqttAccountPrefix + "/vehicles/+/" + REFRESH_MODE);
-      client.subscribe(mqttAccountPrefix + "/vehicles/+/" + REFRESH_PERIOD + "/+");
 
       MessageCoder<MP_UserLoggingInReq> loginRequestMessageCoder =
           new MessageCoder<>(MP_UserLoggingInReq.class);
@@ -291,6 +274,34 @@ public class SaicMqttGateway implements Callable<Integer> {
                             vin,
                             getVehicleState(mqttAccountPrefix, vin.getVin()));
                     vehicleHandlerMap.put(vin.getVin(), handler);
+
+                    IMqttMessageListener configListener =
+                        (topic, message) -> {
+                          LOGGER.info("Got retained config from topic {}: {}", topic, message);
+                          final Matcher configurationValueMatcher =
+                              Pattern.compile(".*/vehicles/([^/]*)/(.*)").matcher(topic);
+                          if (configurationValueMatcher.matches()) {
+                            VehicleState vehicleState =
+                                getVehicleState(
+                                    mqttAccountPrefix, configurationValueMatcher.group(1));
+                            if (!vehicleState.isComplete()) {
+                              vehicleState.configure(configurationValueMatcher.group(2), message);
+                            }
+                          }
+                        };
+                    try {
+                      client.subscribe(
+                          mqttAccountPrefix + "/vehicles/+/" + CLIMATE_REMOTE_TEMPERATURE,
+                          configListener);
+                      client.subscribe(
+                          mqttAccountPrefix + "/vehicles/+/" + REFRESH_MODE, configListener);
+                      client.subscribe(
+                          mqttAccountPrefix + "/vehicles/+/" + REFRESH_PERIOD + "/+",
+                          configListener);
+                    } catch (MqttException e) {
+                      throw new RuntimeException(e);
+                    }
+
                     return handler;
                   })
               .map(

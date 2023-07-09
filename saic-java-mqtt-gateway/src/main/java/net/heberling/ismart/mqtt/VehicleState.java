@@ -10,11 +10,13 @@ import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 import net.heberling.ismart.asn1.v1_1.entity.VinInfo;
 import net.heberling.ismart.asn1.v2_1.Message;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusResp25857;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
+import net.heberling.ismart.mqtt.carconfig.HVACSettings;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -38,6 +40,9 @@ public class VehicleState {
   private Long refreshPeriodAfterShutdown;
   private RefreshMode refreshMode;
   private RefreshMode previousRefreshMode;
+  private Integer remoteTemperature;
+  private HVACSettings hvacSettings;
+  private Integer remoteClimateStatus;
 
   public VehicleState(IMqttClient client, String mqttAccountPrefix, String vin) {
     this(client, mqttAccountPrefix, vin, Clock::systemDefaultZone);
@@ -71,7 +76,7 @@ public class VehicleState {
                     .getExtendedData2()
                 >= 1;
 
-    final Integer remoteClimateStatus =
+    this.remoteClimateStatus =
         vehicleStatusResponseMessage
             .getApplicationData()
             .getBasicVehicleStatus()
@@ -686,11 +691,27 @@ public class VehicleState {
     this.refreshPeriodAfterShutdown = refreshPeriodAfterShutdown;
   }
 
+  public void setRemoteTemperature(int remoteTemperature) {
+    remoteTemperature = hvacSettings.normalizeTemperature(remoteTemperature);
+    if (this.remoteTemperature == null || this.remoteTemperature != remoteTemperature) {
+      MqttMessage mqttMessage =
+          new MqttMessage(String.valueOf(remoteTemperature).getBytes(StandardCharsets.UTF_8));
+      try {
+        mqttMessage.setRetained(true);
+        this.client.publish(this.mqttVINPrefix + "/" + CLIMATE_REMOTE_TEMPERATURE, mqttMessage);
+      } catch (MqttException e) {
+        throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
+      }
+    }
+    this.remoteTemperature = remoteTemperature;
+  }
+
   public boolean isComplete() {
     return refreshPeriodActive != null
         && refreshPeriodInactive != null
         && refreshPeriodAfterShutdown != null
-        && refreshMode != null;
+        && refreshMode != null
+        && remoteTemperature != null;
   }
 
   public void configureMissing() {
@@ -705,6 +726,9 @@ public class VehicleState {
     }
     if (refreshMode == null) {
       setRefreshMode(PERIODIC);
+    }
+    if (remoteTemperature == null) {
+      setRemoteTemperature(22);
     }
   }
 
@@ -742,6 +766,17 @@ public class VehicleState {
           throw new MqttGatewayException("Error setting value for payload: " + message);
         }
         break;
+      case CLIMATE_REMOTE_TEMPERATURE:
+        try {
+          int temperature = Integer.parseInt(message.toString());
+          setRemoteTemperature(temperature);
+        } catch (NumberFormatException e) {
+          throw new MqttGatewayException("Error setting value for payload: " + message);
+        }
+        if (Objects.nonNull(remoteClimateStatus) && remoteClimateStatus > 0) {
+          // TODO send ACC command to car
+        }
+        break;
       default:
         throw new MqttGatewayException("Unsupported topic " + topic);
     }
@@ -749,5 +784,13 @@ public class VehicleState {
 
   private Clock getClock() {
     return clockSupplier.get();
+  }
+
+  public int getRemoteTemperature() {
+    return remoteTemperature;
+  }
+
+  public void setHvacSettings(HVACSettings hvacSettings) {
+    this.hvacSettings = hvacSettings;
   }
 }

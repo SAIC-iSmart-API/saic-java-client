@@ -24,6 +24,8 @@ import net.heberling.ismart.asn1.v3_0.Message;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgCtrlReq;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgCtrlStsResp;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
+import net.heberling.ismart.mqtt.carconfig.HVACSettings;
+import net.heberling.ismart.mqtt.carconfig.HVACSettingsFactory;
 import org.bn.coders.IASN1PreparedElement;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -42,6 +44,7 @@ public class VehicleHandler {
   private final IMqttClient client;
 
   private final VehicleState vehicleState;
+  private final HVACSettings hvacSettings;
 
   public VehicleHandler(
       SaicMqttGateway saicMqttGateway,
@@ -60,6 +63,8 @@ public class VehicleHandler {
     this.token = token;
     this.vinInfo = vinInfo;
     this.vehicleState = vehicleState;
+    this.hvacSettings = HVACSettingsFactory.getHVACSettingsFrom(saicUri, vinInfo.getSeries());
+    vehicleState.setHvacSettings(hvacSettings);
   }
 
   void handleVehicle() throws MqttException, IOException {
@@ -490,10 +495,13 @@ public class VehicleHandler {
               sendACCommand((byte) 0, (byte) 0);
               break;
             case "on":
-              sendACCommand((byte) 2, (byte) 8);
+              sendACCommand(
+                  (byte) 2, hvacSettings.mapTempToSaicApi(vehicleState.getRemoteTemperature()));
               break;
             case "front":
-              sendACCommand((byte) 5, (byte) 8);
+              sendACCommand(
+                  (byte) 5,
+                  (byte) hvacSettings.mapTempToSaicApi(vehicleState.getRemoteTemperature()));
             case "blowingOnly":
               sendACBlowingCommand(true);
               break;

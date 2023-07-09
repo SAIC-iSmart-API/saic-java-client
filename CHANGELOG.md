@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MQTT
   - support starting/stopping charging via setting `drivetrain/charging`
   - added topic `drivetrain/remainingChargingTime`
+  - support remoteTemperature via setting `climate/remoteTemperature`
 
 ### Changed
 - MQTT
@@ -30,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Handle fallback for SOC when charge status update fails
   - ensure that a changed systemd configuration is picked up
   - support blowingOnly mode for `remoteClimateState`
+  - support setting the `remoteTemperature` for A/C
 - API
   - Handle fallback for SOC when charge status update fails
 
