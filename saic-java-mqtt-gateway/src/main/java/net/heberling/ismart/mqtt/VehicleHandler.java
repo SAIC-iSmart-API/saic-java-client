@@ -488,10 +488,10 @@ public class VehicleHandler {
               sendACCommand((byte) 0, (byte) 0);
               break;
             case "on":
-              sendACCommand((byte) 2, (byte) 8);
+              sendACCommand((byte) 2, (byte) (vehicleState.getRemoteTemperature() - 14));
               break;
             case "front":
-              sendACCommand((byte) 5, (byte) 8);
+              sendACCommand((byte) 5, (byte) (vehicleState.getRemoteTemperature() - 14));
             case "blowingOnly":
               sendACBlowingCommand(true);
               break;

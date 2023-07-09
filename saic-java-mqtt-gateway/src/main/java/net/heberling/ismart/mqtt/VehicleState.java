@@ -38,6 +38,7 @@ public class VehicleState {
   private Long refreshPeriodAfterShutdown;
   private RefreshMode refreshMode;
   private RefreshMode previousRefreshMode;
+  private int remoteTemperature;
 
   public VehicleState(IMqttClient client, String mqttAccountPrefix, String vin) {
     this(client, mqttAccountPrefix, vin, Clock::systemDefaultZone);
@@ -653,11 +654,28 @@ public class VehicleState {
     this.refreshPeriodAfterShutdown = refreshPeriodAfterShutdown;
   }
 
+  public void setRemoteTemperature(int remoteTemperature) {
+    if ( remoteTemperature == 0 || this.remoteTemperature != remoteTemperature) {
+
+      MqttMessage mqttMessage =
+              new MqttMessage(
+                      String.valueOf(remoteTemperature).getBytes(StandardCharsets.UTF_8));
+      try {
+        mqttMessage.setRetained(true);
+        this.client.publish(this.mqttVINPrefix + "/" + CLIMATE_REMOTE_TEMPERATURE, mqttMessage);
+      } catch (MqttException e) {
+        throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
+      }
+    }
+    this.remoteTemperature = remoteTemperature;
+  }
+
   public boolean isComplete() {
     return refreshPeriodActive != null
         && refreshPeriodInactive != null
         && refreshPeriodAfterShutdown != null
-        && refreshMode != null;
+        && refreshMode != null
+        && remoteTemperature != 0;
   }
 
   public void configureMissing() {
@@ -672,6 +690,9 @@ public class VehicleState {
     }
     if (refreshMode == null) {
       setRefreshMode(PERIODIC);
+    }
+    if (remoteTemperature == 0) {
+      setRemoteTemperature(22);
     }
   }
 
@@ -709,6 +730,17 @@ public class VehicleState {
           throw new MqttGatewayException("Error setting value for payload: " + message);
         }
         break;
+      case CLIMATE_REMOTE_TEMPERATURE:
+        try {
+          int temperature = Integer.parseInt(message.toString());
+          if(temperature < 16 || temperature > 28) {
+            throw new MqttGatewayException("Value out of range (16-28) " + message);
+          }
+          setRemoteTemperature(temperature);
+        } catch (NumberFormatException e) {
+          throw new MqttGatewayException("Error setting value for payload: " + message);
+        }
+        break;
       default:
         throw new MqttGatewayException("Unsupported topic " + topic);
     }
@@ -716,5 +748,9 @@ public class VehicleState {
 
   private Clock getClock() {
     return clockSupplier.get();
+  }
+
+  public int getRemoteTemperature() {
+    return remoteTemperature;
   }
 }
