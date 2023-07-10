@@ -15,6 +15,8 @@ import net.heberling.ismart.asn1.v1_1.entity.VinInfo;
 import net.heberling.ismart.asn1.v2_1.Message;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusResp25857;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
+import net.heberling.ismart.mqtt.carconfig.DefaultHVACSettings;
+import net.heberling.ismart.mqtt.carconfig.HVACSettings;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -39,6 +41,7 @@ public class VehicleState {
   private RefreshMode refreshMode;
   private RefreshMode previousRefreshMode;
   private Integer remoteTemperature;
+  private HVACSettings hvacSettings;
 
   public VehicleState(IMqttClient client, String mqttAccountPrefix, String vin) {
     this(client, mqttAccountPrefix, vin, Clock::systemDefaultZone);
@@ -655,8 +658,8 @@ public class VehicleState {
   }
 
   public void setRemoteTemperature(Integer remoteTemperature) {
-    if (remoteTemperature < 16 || remoteTemperature > 28) {
-      throw new MqttGatewayException("Value out of range (16-28)");
+    if (!hvacSettings.isTempWithinRange(remoteTemperature)) {
+      throw new MqttGatewayException("Remote temperature out of range: " + remoteTemperature);
     }
     if (this.remoteTemperature == null || this.remoteTemperature != remoteTemperature) {
 
@@ -751,5 +754,9 @@ public class VehicleState {
 
   public int getRemoteTemperature() {
     return remoteTemperature;
+  }
+
+  public void setHvacSettings(HVACSettings hvacSettings) {
+    this.hvacSettings = hvacSettings;
   }
 }
