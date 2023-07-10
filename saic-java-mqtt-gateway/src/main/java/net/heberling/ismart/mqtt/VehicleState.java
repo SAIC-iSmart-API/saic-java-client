@@ -38,7 +38,7 @@ public class VehicleState {
   private Long refreshPeriodAfterShutdown;
   private RefreshMode refreshMode;
   private RefreshMode previousRefreshMode;
-  private int remoteTemperature;
+  private Integer remoteTemperature;
 
   public VehicleState(IMqttClient client, String mqttAccountPrefix, String vin) {
     this(client, mqttAccountPrefix, vin, Clock::systemDefaultZone);
@@ -654,12 +654,14 @@ public class VehicleState {
     this.refreshPeriodAfterShutdown = refreshPeriodAfterShutdown;
   }
 
-  public void setRemoteTemperature(int remoteTemperature) {
-    if ( remoteTemperature == 0 || this.remoteTemperature != remoteTemperature) {
+  public void setRemoteTemperature(Integer remoteTemperature) {
+    if (remoteTemperature < 16 || remoteTemperature > 28) {
+      throw new MqttGatewayException("Value out of range (16-28)");
+    }
+    if (this.remoteTemperature == null || this.remoteTemperature != remoteTemperature) {
 
       MqttMessage mqttMessage =
-              new MqttMessage(
-                      String.valueOf(remoteTemperature).getBytes(StandardCharsets.UTF_8));
+          new MqttMessage(String.valueOf(remoteTemperature).getBytes(StandardCharsets.UTF_8));
       try {
         mqttMessage.setRetained(true);
         this.client.publish(this.mqttVINPrefix + "/" + CLIMATE_REMOTE_TEMPERATURE, mqttMessage);
@@ -675,7 +677,7 @@ public class VehicleState {
         && refreshPeriodInactive != null
         && refreshPeriodAfterShutdown != null
         && refreshMode != null
-        && remoteTemperature != 0;
+        && remoteTemperature != null;
   }
 
   public void configureMissing() {
@@ -733,9 +735,6 @@ public class VehicleState {
       case CLIMATE_REMOTE_TEMPERATURE:
         try {
           int temperature = Integer.parseInt(message.toString());
-          if(temperature < 16 || temperature > 28) {
-            throw new MqttGatewayException("Value out of range (16-28) " + message);
-          }
           setRemoteTemperature(temperature);
         } catch (NumberFormatException e) {
           throw new MqttGatewayException("Error setting value for payload: " + message);
