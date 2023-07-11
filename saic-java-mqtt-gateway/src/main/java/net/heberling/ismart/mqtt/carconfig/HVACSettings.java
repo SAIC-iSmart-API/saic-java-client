@@ -6,7 +6,7 @@ public interface HVACSettings {
 
     Integer getMaxAllowedTemp();
 
-    boolean isTempWithinRange(Integer temp);
+    Integer normalizeTemperature(Integer temp);
 
     byte mapTempToSaicApi(Integer temp);
 }

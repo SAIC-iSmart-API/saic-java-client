@@ -10,12 +10,12 @@ import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 import net.heberling.ismart.asn1.v1_1.entity.VinInfo;
 import net.heberling.ismart.asn1.v2_1.Message;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusResp25857;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
-import net.heberling.ismart.mqtt.carconfig.DefaultHVACSettings;
 import net.heberling.ismart.mqtt.carconfig.HVACSettings;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -42,6 +42,7 @@ public class VehicleState {
   private RefreshMode previousRefreshMode;
   private Integer remoteTemperature;
   private HVACSettings hvacSettings;
+  private Integer remoteClimateStatus;
 
   public VehicleState(IMqttClient client, String mqttAccountPrefix, String vin) {
     this(client, mqttAccountPrefix, vin, Clock::systemDefaultZone);
@@ -75,7 +76,7 @@ public class VehicleState {
                     .getExtendedData2()
                 >= 1;
 
-    final Integer remoteClimateStatus =
+    this.remoteClimateStatus =
         vehicleStatusResponseMessage
             .getApplicationData()
             .getBasicVehicleStatus()
@@ -658,11 +659,8 @@ public class VehicleState {
   }
 
   public void setRemoteTemperature(Integer remoteTemperature) {
-    if (!hvacSettings.isTempWithinRange(remoteTemperature)) {
-      throw new MqttGatewayException("Remote temperature out of range: " + remoteTemperature);
-    }
+    remoteTemperature = hvacSettings.normalizeTemperature(remoteTemperature);
     if (this.remoteTemperature == null || this.remoteTemperature != remoteTemperature) {
-
       MqttMessage mqttMessage =
           new MqttMessage(String.valueOf(remoteTemperature).getBytes(StandardCharsets.UTF_8));
       try {
@@ -741,6 +739,9 @@ public class VehicleState {
           setRemoteTemperature(temperature);
         } catch (NumberFormatException e) {
           throw new MqttGatewayException("Error setting value for payload: " + message);
+        }
+        if(Objects.nonNull(remoteClimateStatus) && remoteClimateStatus > 0) {
+          // TODO send ACC command to car
         }
         break;
       default:

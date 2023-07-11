@@ -12,15 +12,11 @@ public class DefaultHVACSettings implements HVACSettings {
     }
 
     @Override
-    public boolean isTempWithinRange(Integer temp) {
-        return temp >= getMinAllowedTemp() && temp <= getMaxAllowedTemp();
+    public Integer normalizeTemperature(Integer temp) {
+        return Math.min(Math.max(temp, getMinAllowedTemp()), getMaxAllowedTemp());
     }
-
     @Override
     public byte mapTempToSaicApi(Integer temp) {
-        if(!isTempWithinRange(temp)) {
-            throw new IllegalArgumentException("Temperature must be between " + getMinAllowedTemp() + " and " + getMaxAllowedTemp());
-        }
-        return (byte) (temp - 14);
+        return (byte) (normalizeTemperature(temp) - 14);
     }
 }
