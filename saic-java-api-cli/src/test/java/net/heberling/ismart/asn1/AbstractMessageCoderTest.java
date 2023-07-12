@@ -28,7 +28,7 @@ public class AbstractMessageCoderTest {
         file = file.getParentFile();
       }
 
-      examplesDirectory = new File(file.getParentFile(), "docs/examples");
+      examplesDirectory = new File(file.getParentFile(), "documentation/docs/examples");
     } catch (URISyntaxException e) {
       throw new ExceptionInInitializerError(e);
     }

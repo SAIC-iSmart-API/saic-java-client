@@ -3,7 +3,7 @@ package net.heberling.ismart.asn1.v3_0;
 import static org.junit.jupiter.api.Assertions.*;
 
 import net.heberling.ismart.asn1.AbstractMessageCoderTest;
-import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
+import net.heberling.ismart.asn1.v3_0.entity.OTAChrgMangDataResp;
 import org.bn.coders.IASN1PreparedElement;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +17,7 @@ class MessageCoderTest extends AbstractMessageCoderTest {
 
   @Test
   void decodeEncodeResponse_516() {
-    decodeEncode("516_768_response", new MessageCoder<>(OTA_ChrgMangDataResp.class));
+    decodeEncode("516_768_response", new MessageCoder<>(OTAChrgMangDataResp.class));
   }
 
   @Test
@@ -28,6 +28,6 @@ class MessageCoderTest extends AbstractMessageCoderTest {
 
   @Test
   void decodeEncodeResponse_516_with_eventid() {
-    decodeEncode("516_768_response_with_eventid", new MessageCoder<>(OTA_ChrgMangDataResp.class));
+    decodeEncode("516_768_response_with_eventid", new MessageCoder<>(OTAChrgMangDataResp.class));
   }
 }

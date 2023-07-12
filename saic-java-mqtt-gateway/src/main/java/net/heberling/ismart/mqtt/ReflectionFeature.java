@@ -37,7 +37,7 @@ public class ReflectionFeature implements Feature {
     register(net.heberling.ismart.asn1.v3_0.MP_DispatcherHeader.class);
     register(net.heberling.ismart.asn1.v1_1.entity.StartEndNumber.class);
     register(net.heberling.ismart.asn1.v2_1.MP_DispatcherBody.class);
-    register(net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp.class);
+    register(net.heberling.ismart.asn1.v3_0.entity.OTAChrgMangDataResp.class);
     register(net.heberling.ismart.asn1.v3_0.DataEncodingType.class);
     register(net.heberling.ismart.asn1.v1_1.entity.VinInfo.class);
     register(net.heberling.ismart.asn1.v1_1.entity.AdvertiseResp.class);

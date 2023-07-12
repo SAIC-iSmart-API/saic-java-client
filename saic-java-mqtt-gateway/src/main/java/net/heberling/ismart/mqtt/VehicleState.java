@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 import net.heberling.ismart.asn1.v1_1.entity.VinInfo;
 import net.heberling.ismart.asn1.v2_1.Message;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusResp25857;
-import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
+import net.heberling.ismart.asn1.v3_0.entity.OTAChrgMangDataResp;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -395,7 +395,7 @@ public class VehicleState {
   }
 
   public void handleChargeStatusMessage(
-      net.heberling.ismart.asn1.v3_0.Message<OTA_ChrgMangDataResp> chargingStatusResponseMessage)
+      net.heberling.ismart.asn1.v3_0.Message<OTAChrgMangDataResp> chargingStatusResponseMessage)
       throws MqttException {
     MqttMessage msg =
         new MqttMessage(
