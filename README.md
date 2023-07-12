@@ -38,8 +38,7 @@ cd saic-java-client
 
 Checkout submodules
 ```bash
-git submodule init
-git submodule update
+git submodule update --init --recursive
 ```
 
 Build and test

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusResp25857;
-import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
+import net.heberling.ismart.asn1.v3_0.entity.OTAChrgMangDataResp;
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -27,7 +27,7 @@ public class ABRP {
       String abrpApiKey,
       String abrpUserToken,
       OTA_RVMVehicleStatusResp25857 vehicleStatus,
-      OTA_ChrgMangDataResp chargeStatus) {
+      OTAChrgMangDataResp chargeStatus) {
     try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
       // Request parameters and other properties.
       HashMap<String, Object> map = new HashMap<>();

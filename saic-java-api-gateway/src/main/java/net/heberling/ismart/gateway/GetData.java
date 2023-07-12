@@ -20,7 +20,7 @@ import net.heberling.ismart.asn1.v1_1.Message;
 import net.heberling.ismart.asn1.v1_1.MessageCoder;
 import net.heberling.ismart.asn1.v1_1.entity.MP_UserLoggingInReq;
 import net.heberling.ismart.asn1.v1_1.entity.MP_UserLoggingInResp;
-import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
+import net.heberling.ismart.asn1.v3_0.entity.OTAChrgMangDataResp;
 import org.bn.annotations.ASN1Enum;
 import org.bn.coders.IASN1PreparedElement;
 
@@ -92,8 +92,8 @@ public class GetData {
         sendRequest(
             URI.create("https://tap-eu.soimt.com/TAP.Web/ota.mpv30"), chargingStatusRequestMessage);
 
-    net.heberling.ismart.asn1.v3_0.Message<OTA_ChrgMangDataResp> chargingStatusResponseMessage =
-        new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgMangDataResp.class)
+    net.heberling.ismart.asn1.v3_0.Message<OTAChrgMangDataResp> chargingStatusResponseMessage =
+        new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTAChrgMangDataResp.class)
             .decodeResponse(chargingStatusResponse);
 
     // System.out.println(chargingStatusResponse);
@@ -134,7 +134,7 @@ public class GetData {
               chargingStatusRequestMessage);
 
       chargingStatusResponseMessage =
-          new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgMangDataResp.class)
+          new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTAChrgMangDataResp.class)
               .decodeResponse(chargingStatusResponse);
 
       // System.out.println(chargingStatusResponse);
