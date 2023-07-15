@@ -7,7 +7,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import org.eclipse.paho.client.mqttv3.MqttClient;
+import net.heberling.ismart.mqtt.carconfig.DefaultHVACSettings;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class VehicleStateTest {
 
   public static final int REFERENCE_TIME = 1684273208;
-  @Mock private MqttClient mqttClient;
+  @Mock private GatewayMqttClient mqttClient;
 
   private Clock clock;
   private VehicleState vehicleState;
@@ -28,6 +28,7 @@ public class VehicleStateTest {
   public void setUp() throws MqttException {
     clock = Clock.fixed(Instant.ofEpochSecond(REFERENCE_TIME), ZoneId.systemDefault());
     vehicleState = new VehicleState(mqttClient, "test/topic", "test", () -> this.clock);
+    vehicleState.setHvacSettings(new DefaultHVACSettings());
     vehicleState.configureMissing();
     vehicleState.notifyCarActivityTime(OffsetDateTime.now(clock), true);
   }
