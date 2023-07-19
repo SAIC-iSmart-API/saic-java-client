@@ -6,7 +6,6 @@ import static net.heberling.ismart.mqtt.RefreshMode.FORCE;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -17,15 +16,13 @@ import net.heberling.ismart.asn1.v1_1.entity.VinInfo;
 import net.heberling.ismart.asn1.v2_1.MessageCoder;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVCReq;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVCStatus25857;
-import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusReq;
 import net.heberling.ismart.asn1.v2_1.entity.OTA_RVMVehicleStatusResp25857;
 import net.heberling.ismart.asn1.v2_1.entity.RvcReqParam;
 import net.heberling.ismart.asn1.v3_0.Message;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgCtrlReq;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgCtrlStsResp;
 import net.heberling.ismart.asn1.v3_0.entity.OTA_ChrgMangDataResp;
-import org.bn.coders.IASN1PreparedElement;
-import org.eclipse.paho.client.mqttv3.IMqttClient;
+import net.heberling.ismart.mqtt.carconfig.DefaultHVACSettings;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.slf4j.Logger;
@@ -39,13 +36,16 @@ public class VehicleHandler {
   private final String token;
   private final VinInfo vinInfo;
   private final SaicMqttGateway saicMqttGateway;
-  private final IMqttClient client;
+  private final GatewayMqttClient client;
 
   private final VehicleState vehicleState;
+  private final DefaultHVACSettings hvacSettings;
+
+  private final SaicService saicService;
 
   public VehicleHandler(
       SaicMqttGateway saicMqttGateway,
-      IMqttClient client,
+      GatewayMqttClient client,
       URI saicUri,
       String uid,
       String token,
@@ -60,6 +60,13 @@ public class VehicleHandler {
     this.token = token;
     this.vinInfo = vinInfo;
     this.vehicleState = vehicleState;
+    switch (vinInfo.getSeries()) {
+        // TODO which extra cases do we need?
+      default:
+        this.hvacSettings = new DefaultHVACSettings();
+    }
+    vehicleState.setHvacSettings(hvacSettings);
+    saicService = new SaicService(saicUri, mqttAccountPrefix, vehicleState, client);
   }
 
   void handleVehicle() throws MqttException, IOException {
@@ -76,18 +83,17 @@ public class VehicleHandler {
         try {
 
           OTA_RVMVehicleStatusResp25857 vehicleStatus =
-              updateVehicleStatus(uid, token, vinInfo.getVin());
+              saicService.updateVehicleStatus(uid, token, vinInfo.getVin(), this);
 
-          OTA_ChrgMangDataResp chargeStatus = updateChargeStatus(uid, token, vinInfo.getVin());
+          OTA_ChrgMangDataResp chargeStatus =
+              saicService.updateChargeStatus(uid, token, vinInfo.getVin(), this);
           final String abrpApiKey = saicMqttGateway.getAbrpApiKey();
           final String abrpUserToken = saicMqttGateway.getAbrpUserToken(vinInfo.getVin());
           if (abrpApiKey != null && abrpUserToken != null && vehicleStatus != null) {
             String abrpResponse =
                 ABRP.updateAbrp(abrpApiKey, abrpUserToken, vehicleStatus, chargeStatus);
-            MqttMessage msg = new MqttMessage(abrpResponse.getBytes(StandardCharsets.UTF_8));
-            msg.setQos(0);
-            msg.setRetained(true);
-            client.publish(vehicleState.getMqttVINPrefix() + "/" + INTERNAL_ABRP, msg);
+            client.publishRetained(
+                vehicleState.getMqttVINPrefix() + "/" + INTERNAL_ABRP, abrpResponse);
           }
           if (Objects.isNull(chargeStatus)) {
             updateFallbackChargeStateData(vehicleStatus);
@@ -113,161 +119,10 @@ public class VehicleHandler {
   private void updateFallbackChargeStateData(OTA_RVMVehicleStatusResp25857 vehicleStatus)
       throws MqttException {
     LOGGER.warn("Extracting SOC from vehicle status as charge state update failed...");
-    MqttMessage msg =
-        new MqttMessage(
-            vehicleStatus
-                .getBasicVehicleStatus()
-                .getExtendedData1()
-                .toString()
-                .getBytes(StandardCharsets.UTF_8));
-    msg.setQos(0);
-    msg.setRetained(true);
-    client.publish(vehicleState.getMqttVINPrefix() + "/" + DRIVETRAIN_SOC, msg);
-  }
 
-  private OTA_RVMVehicleStatusResp25857 updateVehicleStatus(String uid, String token, String vin)
-      throws IOException, MqttException {
-    MessageCoder<OTA_RVMVehicleStatusReq> otaRvmVehicleStatusReqMessageCoder =
-        new MessageCoder<>(OTA_RVMVehicleStatusReq.class);
-
-    OTA_RVMVehicleStatusReq otaRvmVehicleStatusReq = new OTA_RVMVehicleStatusReq();
-    otaRvmVehicleStatusReq.setVehStatusReqType(2);
-    net.heberling.ismart.asn1.v2_1.Message<OTA_RVMVehicleStatusReq> vehicleStatusRequestMessage =
-        otaRvmVehicleStatusReqMessageCoder.initializeMessage(
-            uid, token, vin, "511", 25857, 1, otaRvmVehicleStatusReq);
-
-    String vehicleStatusRequest =
-        otaRvmVehicleStatusReqMessageCoder.encodeRequest(vehicleStatusRequestMessage);
-
-    String vehicleStatusResponse =
-        Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv21"), vehicleStatusRequest);
-
-    net.heberling.ismart.asn1.v2_1.Message<OTA_RVMVehicleStatusResp25857>
-        vehicleStatusResponseMessage =
-            new net.heberling.ismart.asn1.v2_1.MessageCoder<>(OTA_RVMVehicleStatusResp25857.class)
-                .decodeResponse(vehicleStatusResponse);
-
-    // we get an eventId back...
-    vehicleStatusRequestMessage
-        .getBody()
-        .setEventID(vehicleStatusResponseMessage.getBody().getEventID());
-    // ... use that to request the data again, until we have it
-    while (vehicleStatusResponseMessage.getApplicationData() == null) {
-
-      if (vehicleStatusResponseMessage.getBody().isErrorMessagePresent()) {
-
-        if (vehicleStatusResponseMessage.getBody().getResult() == 2) {
-          // TODO: relogn
-        }
-
-        throw new MqttGatewayException(
-            "Refreshing Vehicle State from SAIC API failed with message: "
-                + new String(
-                    vehicleStatusResponseMessage.getBody().getErrorMessage(),
-                    StandardCharsets.UTF_8));
-      }
-
-      vehicleStatusRequestMessage.getBody().setUid(uid);
-      vehicleStatusRequestMessage.getBody().setToken(token);
-
-      SaicMqttGateway.fillReserved(vehicleStatusRequestMessage.getReserved());
-
-      vehicleStatusRequest =
-          otaRvmVehicleStatusReqMessageCoder.encodeRequest(vehicleStatusRequestMessage);
-
-      vehicleStatusResponse =
-          Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv21"), vehicleStatusRequest);
-
-      vehicleStatusResponseMessage =
-          new net.heberling.ismart.asn1.v2_1.MessageCoder<>(OTA_RVMVehicleStatusResp25857.class)
-              .decodeResponse(vehicleStatusResponse);
-
-      LOGGER.debug(
-          SaicMqttGateway.toJSON(
-              SaicMqttGateway.anonymized(
-                  new net.heberling.ismart.asn1.v2_1.MessageCoder<>(
-                      OTA_RVMVehicleStatusResp25857.class),
-                  vehicleStatusResponseMessage)));
-    }
-
-    vehicleState.handleVehicleStatusMessage(vehicleStatusResponseMessage);
-    return vehicleStatusResponseMessage.getApplicationData();
-  }
-
-  private OTA_ChrgMangDataResp updateChargeStatus(String uid, String token, String vin)
-      throws IOException, MqttException {
-    net.heberling.ismart.asn1.v3_0.MessageCoder<IASN1PreparedElement>
-        chargingStatusRequestMessageEncoder =
-            new net.heberling.ismart.asn1.v3_0.MessageCoder<>(IASN1PreparedElement.class);
-
-    net.heberling.ismart.asn1.v3_0.Message<IASN1PreparedElement> chargingStatusMessage =
-        chargingStatusRequestMessageEncoder.initializeMessage(uid, token, vin, "516", 768, 5, null);
-
-    String chargingStatusRequestMessage =
-        chargingStatusRequestMessageEncoder.encodeRequest(chargingStatusMessage);
-
-    LOGGER.debug(
-        SaicMqttGateway.toJSON(
-            SaicMqttGateway.anonymized(
-                chargingStatusRequestMessageEncoder, chargingStatusMessage)));
-
-    String chargingStatusResponse =
-        Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv30"), chargingStatusRequestMessage);
-
-    net.heberling.ismart.asn1.v3_0.Message<OTA_ChrgMangDataResp> chargingStatusResponseMessage =
-        new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgMangDataResp.class)
-            .decodeResponse(chargingStatusResponse);
-
-    LOGGER.debug(
-        SaicMqttGateway.toJSON(
-            SaicMqttGateway.anonymized(
-                new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgMangDataResp.class),
-                chargingStatusResponseMessage)));
-
-    // we get an eventId back...
-    chargingStatusMessage
-        .getBody()
-        .setEventID(chargingStatusResponseMessage.getBody().getEventID());
-    // ... use that to request the data again, until we have it
-    while (chargingStatusResponseMessage.getApplicationData() == null) {
-
-      if (chargingStatusResponseMessage.getBody().isErrorMessagePresent()) {
-        if (chargingStatusResponseMessage.getBody().getResult() == 2) {
-          // TODO: relogn
-        }
-        LOGGER.error(
-            "Refreshing Charging State from SAIC API failed with message: {}",
-            new String(
-                chargingStatusResponseMessage.getBody().getErrorMessage(), StandardCharsets.UTF_8));
-        return null;
-      }
-
-      SaicMqttGateway.fillReserved(chargingStatusMessage.getReserved());
-
-      LOGGER.debug(
-          SaicMqttGateway.toJSON(
-              SaicMqttGateway.anonymized(
-                  chargingStatusRequestMessageEncoder, chargingStatusMessage)));
-
-      chargingStatusRequestMessage =
-          chargingStatusRequestMessageEncoder.encodeRequest(chargingStatusMessage);
-
-      chargingStatusResponse =
-          Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mpv30"), chargingStatusRequestMessage);
-
-      chargingStatusResponseMessage =
-          new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgMangDataResp.class)
-              .decodeResponse(chargingStatusResponse);
-
-      LOGGER.debug(
-          SaicMqttGateway.toJSON(
-              SaicMqttGateway.anonymized(
-                  new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgMangDataResp.class),
-                  chargingStatusResponseMessage)));
-    }
-    vehicleState.handleChargeStatusMessage(chargingStatusResponseMessage);
-
-    return chargingStatusResponseMessage.getApplicationData();
+    client.publishRetained(
+        vehicleState.getMqttVINPrefix() + "/" + DRIVETRAIN_SOC,
+        vehicleStatus.getBasicVehicleStatus().getExtendedData1().toString());
   }
 
   public void notifyMessage(SaicMessage message) throws MqttException {
@@ -488,10 +343,13 @@ public class VehicleHandler {
               sendACCommand((byte) 0, (byte) 0);
               break;
             case "on":
-              sendACCommand((byte) 2, (byte) 8);
+              sendACCommand(
+                  (byte) 2, hvacSettings.mapTempToSaicApi(vehicleState.getRemoteTemperature()));
               break;
             case "front":
-              sendACCommand((byte) 5, (byte) 8);
+              sendACCommand(
+                  (byte) 5,
+                  (byte) hvacSettings.mapTempToSaicApi(vehicleState.getRemoteTemperature()));
             case "blowingOnly":
               sendACBlowingCommand(true);
               break;
@@ -527,11 +385,7 @@ public class VehicleHandler {
         default:
           vehicleState.configure(topic, message);
       }
-      MqttMessage msg = new MqttMessage("Success".getBytes(StandardCharsets.UTF_8));
-      msg.setQos(0);
-      msg.setRetained(false);
-      client.publish(vehicleState.getMqttVINPrefix() + "/" + topic + "/result", msg);
-
+      client.publish(vehicleState.getMqttVINPrefix() + "/" + topic + "/result", "Success");
       vehicleState.setRefreshMode(FORCE);
 
     } catch (URISyntaxException
@@ -541,11 +395,10 @@ public class VehicleHandler {
         | IOException
         | MqttGatewayException e) {
       LOGGER.error("Command {} failed with {}.", topic, message, e);
-      MqttMessage msg =
-          new MqttMessage(("Command failed. " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
-      msg.setQos(0);
-      msg.setRetained(false);
-      client.publish(vehicleState.getMqttVINPrefix() + "/" + topic + "/result", msg);
+
+      client.publish(
+          vehicleState.getMqttVINPrefix() + "/" + topic + "/result",
+          "Command failed. " + e.getMessage());
     }
   }
 }

@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -53,11 +52,8 @@ import net.heberling.ismart.cli.UTF8StringObjectWriter;
 import org.bn.annotations.ASN1Enum;
 import org.bn.annotations.ASN1Sequence;
 import org.bn.coders.IASN1PreparedElement;
-import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.slf4j.Logger;
@@ -165,7 +161,7 @@ public class SaicMqttGateway implements Callable<Integer> {
       split = ",")
   private Map<String, String> vinAbrpTokenMap = new HashMap<>();
 
-  private IMqttClient client;
+  private GatewayMqttClient client;
 
   private final Map<String, VehicleHandler> vehicleHandlerMap = new HashMap<>();
 
@@ -174,149 +170,129 @@ public class SaicMqttGateway implements Callable<Integer> {
 
   @Override
   public Integer call() throws Exception { // your business logic goes here...
-    String publisherId = UUID.randomUUID().toString();
-    try (IMqttClient client =
-        new MqttClient(mqttUri.toString(), publisherId, null) {
+
+    var mqttAccountPrefix = "saic/" + saicUser;
+
+    this.client = new GatewayMqttClient(mqttUri, mqttUser, mqttPassword);
+
+    client.setCallback(
+        new MqttCallback() {
           @Override
-          public void close() throws MqttException {
-            disconnect();
-            super.close(true);
-          }
-        }) {
-      this.client = client;
-      MqttConnectOptions options = new MqttConnectOptions();
-      options.setAutomaticReconnect(true);
-      options.setCleanSession(true);
-      options.setConnectionTimeout(10);
-      if (mqttUser != null) {
-        options.setUserName(mqttUser);
-      }
-      if (mqttPassword != null) {
-        options.setPassword(mqttPassword);
-      }
-      client.connect(options);
+          public void connectionLost(Throwable cause) {}
 
-      var mqttAccountPrefix = "saic/" + saicUser;
-
-      client.setCallback(
-          new MqttCallback() {
-            @Override
-            public void connectionLost(Throwable cause) {}
-
-            @Override
-            public void messageArrived(String topic, MqttMessage message) throws Exception {
-              LOGGER.info("Got message for topic {}: {}", topic, message);
-              final Matcher setValueMatcher =
-                  Pattern.compile(".*/vehicles/([^/]*)/(.*)/set").matcher(topic);
-              final Matcher configurationValueMatcher =
-                  Pattern.compile(".*/vehicles/([^/]*)/(.*)").matcher(topic);
-              if (setValueMatcher.matches()) {
-                new Thread(
-                        () -> {
-                          try {
-                            vehicleHandlerMap
-                                .get(setValueMatcher.group(1))
-                                .handleMQTTCommand(setValueMatcher.group(2), message);
-                          } catch (MqttException e) {
-                            LOGGER.error(
-                                "Could not handle message for topic {}: {}", topic, message, e);
-                          }
-                        })
-                    .start();
-              } else if (configurationValueMatcher.matches()) {
-                VehicleState vehicleState =
-                    getVehicleState(mqttAccountPrefix, configurationValueMatcher.group(1));
-                if (!vehicleState.isComplete()) {
-                  vehicleState.configure(configurationValueMatcher.group(2), message);
-                }
+          @Override
+          public void messageArrived(String topic, MqttMessage message) throws Exception {
+            LOGGER.info("Got message for topic {}: {}", topic, message);
+            final Matcher setValueMatcher =
+                Pattern.compile(".*/vehicles/([^/]*)/(.*)/set").matcher(topic);
+            final Matcher configurationValueMatcher =
+                Pattern.compile(".*/vehicles/([^/]*)/(.*)").matcher(topic);
+            if (setValueMatcher.matches()) {
+              new Thread(
+                      () -> {
+                        try {
+                          vehicleHandlerMap
+                              .get(setValueMatcher.group(1))
+                              .handleMQTTCommand(setValueMatcher.group(2), message);
+                        } catch (MqttException e) {
+                          LOGGER.error(
+                              "Could not handle message for topic {}: {}", topic, message, e);
+                        }
+                      })
+                  .start();
+            } else if (configurationValueMatcher.matches()) {
+              VehicleState vehicleState =
+                  getVehicleState(mqttAccountPrefix, configurationValueMatcher.group(1));
+              if (!vehicleState.isComplete()) {
+                vehicleState.configure(configurationValueMatcher.group(2), message);
               }
             }
+          }
 
-            @Override
-            public void deliveryComplete(IMqttDeliveryToken token) {}
-          });
+          @Override
+          public void deliveryComplete(IMqttDeliveryToken token) {}
+        });
 
-      client.subscribe(mqttAccountPrefix + "/vehicles/+/+/+/set");
-      client.subscribe(mqttAccountPrefix + "/vehicles/+/+/+/+/set");
-      client.subscribe(mqttAccountPrefix + "/vehicles/+/" + REFRESH_MODE);
-      client.subscribe(mqttAccountPrefix + "/vehicles/+/" + REFRESH_PERIOD + "/+");
+    client.subscribe(mqttAccountPrefix + "/vehicles/+/+/+/set");
+    client.subscribe(mqttAccountPrefix + "/vehicles/+/+/+/+/set");
+    client.subscribe(mqttAccountPrefix + "/vehicles/+/" + REFRESH_MODE);
+    client.subscribe(mqttAccountPrefix + "/vehicles/+/" + REFRESH_PERIOD + "/+");
 
-      MessageCoder<MP_UserLoggingInReq> loginRequestMessageCoder =
-          new MessageCoder<>(MP_UserLoggingInReq.class);
+    MessageCoder<MP_UserLoggingInReq> loginRequestMessageCoder =
+        new MessageCoder<>(MP_UserLoggingInReq.class);
 
-      MP_UserLoggingInReq applicationData = new MP_UserLoggingInReq();
-      applicationData.setPassword(saicPassword);
-      Message<MP_UserLoggingInReq> loginRequestMessage =
-          loginRequestMessageCoder.initializeMessage(
-              "0000000000000000000000000000000000000000000000000#".substring(saicUser.length())
-                  + saicUser,
-              null,
-              null,
-              "501",
-              513,
-              1,
-              applicationData);
+    MP_UserLoggingInReq applicationData = new MP_UserLoggingInReq();
+    applicationData.setPassword(saicPassword);
+    Message<MP_UserLoggingInReq> loginRequestMessage =
+        loginRequestMessageCoder.initializeMessage(
+            "0000000000000000000000000000000000000000000000000#".substring(saicUser.length())
+                + saicUser,
+            null,
+            null,
+            "501",
+            513,
+            1,
+            applicationData);
 
-      String loginRequest = loginRequestMessageCoder.encodeRequest(loginRequestMessage);
+    String loginRequest = loginRequestMessageCoder.encodeRequest(loginRequestMessage);
 
-      LOGGER.debug(toJSON(anonymized(loginRequestMessageCoder, loginRequestMessage)));
+    LOGGER.debug(toJSON(anonymized(loginRequestMessageCoder, loginRequestMessage)));
 
-      String loginResponse = Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mp"), loginRequest);
+    String loginResponse = Client.sendRequest(saicUri.resolve("/TAP.Web/ota.mp"), loginRequest);
 
-      Message<MP_UserLoggingInResp> loginResponseMessage =
-          new MessageCoder<>(MP_UserLoggingInResp.class).decodeResponse(loginResponse);
+    Message<MP_UserLoggingInResp> loginResponseMessage =
+        new MessageCoder<>(MP_UserLoggingInResp.class).decodeResponse(loginResponse);
 
-      // register for all known alarm types (not all might be actually delivered)
-      for (MP_AlarmSettingType.EnumType type : MP_AlarmSettingType.EnumType.values()) {
-        registerAlarmMessage(
+    // register for all known alarm types (not all might be actually delivered)
+    for (MP_AlarmSettingType.EnumType type : MP_AlarmSettingType.EnumType.values()) {
+      registerAlarmMessage(
+          loginResponseMessage.getBody().getUid(),
+          loginResponseMessage.getApplicationData().getToken(),
+          type);
+    }
+
+    LOGGER.debug(
+        toJSON(anonymized(new MessageCoder<>(MP_UserLoggingInResp.class), loginResponseMessage)));
+    List<Future<?>> futures =
+        loginResponseMessage.getApplicationData().getVinList().stream()
+            .map(
+                vin -> {
+                  VehicleHandler handler =
+                      new VehicleHandler(
+                          this,
+                          client,
+                          saicUri,
+                          loginResponseMessage.getBody().getUid(),
+                          loginResponseMessage.getApplicationData().getToken(),
+                          mqttAccountPrefix,
+                          vin,
+                          getVehicleState(mqttAccountPrefix, vin.getVin()));
+                  vehicleHandlerMap.put(vin.getVin(), handler);
+                  return handler;
+                })
+            .map(
+                handler ->
+                    (Callable<Object>)
+                        () -> {
+                          handler.handleVehicle();
+                          return null;
+                        })
+            .map(Executors.newSingleThreadExecutor()::submit)
+            .collect(Collectors.toList());
+
+    ScheduledFuture<?> pollingJob =
+        createMessagePoller(
             loginResponseMessage.getBody().getUid(),
             loginResponseMessage.getApplicationData().getToken(),
-            type);
-      }
+            mqttAccountPrefix);
 
-      LOGGER.debug(
-          toJSON(anonymized(new MessageCoder<>(MP_UserLoggingInResp.class), loginResponseMessage)));
-      List<Future<?>> futures =
-          loginResponseMessage.getApplicationData().getVinList().stream()
-              .map(
-                  vin -> {
-                    VehicleHandler handler =
-                        new VehicleHandler(
-                            this,
-                            client,
-                            saicUri,
-                            loginResponseMessage.getBody().getUid(),
-                            loginResponseMessage.getApplicationData().getToken(),
-                            mqttAccountPrefix,
-                            vin,
-                            getVehicleState(mqttAccountPrefix, vin.getVin()));
-                    vehicleHandlerMap.put(vin.getVin(), handler);
-                    return handler;
-                  })
-              .map(
-                  handler ->
-                      (Callable<Object>)
-                          () -> {
-                            handler.handleVehicle();
-                            return null;
-                          })
-              .map(Executors.newSingleThreadExecutor()::submit)
-              .collect(Collectors.toList());
+    futures.add(pollingJob);
 
-      ScheduledFuture<?> pollingJob =
-          createMessagePoller(
-              loginResponseMessage.getBody().getUid(),
-              loginResponseMessage.getApplicationData().getToken(),
-              mqttAccountPrefix);
-
-      futures.add(pollingJob);
-
-      for (Future<?> future : futures) {
-        // make sure we wait on all futures before exiting
-        future.get();
-      }
-      return 0;
+    for (Future<?> future : futures) {
+      // make sure we wait on all futures before exiting
+      future.get();
     }
+    return 0;
   }
 
   private VehicleState getVehicleState(String mqttAccountPrefix, String vin) {
@@ -526,14 +502,8 @@ public class SaicMqttGateway implements Callable<Integer> {
   }
 
   public void notifyMessage(String mqttMessagePrefix, SaicMessage message) throws MqttException {
-    MqttMessage msg =
-        new MqttMessage(SaicMqttGateway.toJSON(message).getBytes(StandardCharsets.UTF_8));
-    msg.setQos(0);
-    // Don't retain, so deleted messages are removed
-    // automatically from the broker
-    msg.setRetained(false);
-    client.publish(mqttMessagePrefix + "/" + message.getMessageId(), msg);
-
+    client.publish(
+        mqttMessagePrefix + "/" + message.getMessageId(), SaicMqttGateway.toJSON(message));
     if (message.getVin() != null) {
       vehicleHandlerMap.get(message.getVin()).notifyMessage(message);
     }
