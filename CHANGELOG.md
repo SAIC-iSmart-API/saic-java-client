@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Dependencies
 - Bump `version.picocli` from 4.7.3 to 4.7.4 (#29)
 - Bump `maven-failsafe-plugin` from 3.1.0 to 3.1.2 (#30)
-- Bump `graal-sdk` from 22.3.2 to 23.0.0 (#33)
+- Bump `graal-sdk` from 22.3.2 to 23.0.1 (#33, #53)
 - Bump `native-maven-plugin` from 0.9.22 to 0.9.23 (#40)
 - Bump `maven-shade-plugin` from 3.4.1 to 3.5.0 (#38)
 - Bump `mockito-junit-jupiter` from 5.3.1 to 5.4.0 (#39)
