@@ -93,7 +93,6 @@ public class VehicleHandler {
             updateFallbackChargeStateData(vehicleStatus);
           }
           vehicleState.markSuccessfulRefresh();
-          LOGGER.info("Refreshing vehicle status succeeded...");
 
         } catch (MqttGatewayException e) {
           LOGGER.warn(e.getMessage());
