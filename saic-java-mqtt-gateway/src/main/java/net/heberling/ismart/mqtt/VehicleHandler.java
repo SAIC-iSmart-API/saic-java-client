@@ -381,6 +381,9 @@ public class VehicleHandler {
         "Got SendCommand Response message: {}",
         SaicMqttGateway.toJSON(
             SaicMqttGateway.anonymized(otaRvcStatus25857MessageCoder, sendCommandReqestMessage)));
+
+    // we send a command end expect the car to wake up
+    vehicleState.setRefreshMode(FORCE);
   }
 
   private void sendCharging(boolean state)
@@ -392,9 +395,6 @@ public class VehicleHandler {
           IOException {
     net.heberling.ismart.asn1.v3_0.MessageCoder<OTA_ChrgCtrlReq> otaRvcReqMessageCoder =
         new net.heberling.ismart.asn1.v3_0.MessageCoder<>(OTA_ChrgCtrlReq.class);
-
-    // we send a command end expect the car to wake up
-    vehicleState.notifyCarActivityTime(OffsetDateTime.now(), false);
 
     OTA_ChrgCtrlReq req = new OTA_ChrgCtrlReq();
     req.setTboxV2XReq(0);
@@ -449,6 +449,9 @@ public class VehicleHandler {
         "Got SendCommand Response message: {}",
         SaicMqttGateway.toJSON(
             SaicMqttGateway.anonymized(otaRvcStatus25857MessageCoder, sendCommandReqestMessage)));
+
+    // we send a command end expect the car to wake up
+    vehicleState.setRefreshMode(FORCE);
   }
 
   public void handleMQTTCommand(String topic, MqttMessage message) throws MqttException {
@@ -530,8 +533,6 @@ public class VehicleHandler {
       msg.setQos(0);
       msg.setRetained(false);
       client.publish(vehicleState.getMqttVINPrefix() + "/" + topic + "/result", msg);
-
-      vehicleState.setRefreshMode(FORCE);
 
     } catch (URISyntaxException
         | ExecutionException
