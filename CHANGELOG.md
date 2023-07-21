@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - keep message fetch thread alive after connection failures
   - Make sure car state is updated after successful command
   - never publish `force` to the `refresh/mode` to prevent never ending polling
+  - prevent setting previous refresh mode to the same value as the current #55
 
 ### Dependencies
 - Bump `version.picocli` from 4.7.3 to 4.7.4 (#29)
