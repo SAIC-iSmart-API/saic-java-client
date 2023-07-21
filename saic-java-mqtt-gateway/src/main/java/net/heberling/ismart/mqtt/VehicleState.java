@@ -644,9 +644,11 @@ public class VehicleState {
           throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
         }
       }
+      this.previousRefreshMode = this.refreshMode;
+      this.refreshMode = refreshMode;
+    } else {
+      LOGGER.info("Keeping refresh mode {}", refreshMode.getStringValue());
     }
-    this.previousRefreshMode = this.refreshMode;
-    this.refreshMode = refreshMode;
   }
 
   public RefreshMode getRefreshMode() {
