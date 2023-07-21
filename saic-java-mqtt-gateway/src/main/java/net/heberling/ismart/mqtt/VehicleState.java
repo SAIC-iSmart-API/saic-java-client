@@ -561,6 +561,12 @@ public class VehicleState {
     if (!hvBatteryActive && this.hvBatteryActive) {
       this.lastCarShutdown = OffsetDateTime.now(getClock());
       LOGGER.info("Car shutdown detected: {}", lastCarShutdown);
+
+      MqttMessage msg =
+          new MqttMessage(lastCarShutdown.toString().getBytes(StandardCharsets.UTF_8));
+      msg.setQos(0);
+      msg.setRetained(true);
+      client.publish(mqttVINPrefix + "/" + REFRESH_LAST_CAR_SHUTDOWN, msg);
     }
     this.hvBatteryActive = hvBatteryActive;
 
@@ -651,6 +657,14 @@ public class VehicleState {
     this.lastSuccessfulRefresh = OffsetDateTime.now(getClock());
     LOGGER.info("Refreshing vehicle status succeeded...");
     LOGGER.info("Last successful refresh: {}", lastSuccessfulRefresh);
+    MqttMessage mqttMessage =
+        new MqttMessage(lastSuccessfulRefresh.toString().getBytes(StandardCharsets.UTF_8));
+    try {
+      mqttMessage.setRetained(true);
+      this.client.publish(this.mqttVINPrefix + "/" + REFRESH_LAST_SUCCESSFULL_REFRESH, mqttMessage);
+    } catch (MqttException e) {
+      throw new MqttGatewayException("Error publishing message: " + mqttMessage, e);
+    }
   }
 
   public void setRefreshPeriodAfterShutdown(long refreshPeriodAfterShutdown) {
