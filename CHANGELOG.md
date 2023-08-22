@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `mockito-junit-jupiter` from 5.3.1 to 5.4.0 (#39)
 - Bump `mockito-core` from 5.3.1 to 5.4.0 (#37)
 - Bump `spotless-maven-plugin` from 2.37.0 to 2.38.0 (#52)
+- Bump `org.testcontainers:testcontainers-bom` from 1.18.3 to 1.19.0 ([#59](https://github.com/SAIC-iSmart-API/saic-java-client/pull/59))
 
 ## [0.2.1] - 2023-06-03
 ### Fixed
