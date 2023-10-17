@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `org.junit.jupiter:junit-jupiter` from 5.9.3 to 5.10.0 ([#57](https://github.com/SAIC-iSmart-API/saic-java-client/pull/57))
 - Bump `org.mockito:mockito-core` from 5.4.0 to 5.6.0 ([#71](https://github.com/SAIC-iSmart-API/saic-java-client/pull/71))
 - Bump `org.mockito:mockito-junit-jupiter` from 5.4.0 to 5.6.0 ([#72](https://github.com/SAIC-iSmart-API/saic-java-client/pull/72))
+- Bump `org.graalvm.buildtools:native-maven-plugin` from 0.9.23 to 0.9.27 ([#66](https://github.com/SAIC-iSmart-API/saic-java-client/pull/66))
 
 ## [0.2.1] - 2023-06-03
 ### Fixed
