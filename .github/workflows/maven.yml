@@ -28,7 +28,7 @@ jobs:
       DOCKERHUB_ORGANIZATION: ${{ secrets.DOCKERHUB_ORGANIZATION == null && secrets.DOCKERHUB_USERNAME || secrets.DOCKERHUB_ORGANIZATION }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install tools from asdf config

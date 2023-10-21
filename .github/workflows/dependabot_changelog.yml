@@ -16,7 +16,7 @@ jobs:
   changelog:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           # This token will trigger workflow jobs on push
           token: ${{ secrets.GIT_PUSH_TOKEN }}
