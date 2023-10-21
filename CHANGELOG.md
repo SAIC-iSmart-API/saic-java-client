@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `stefanzweifel/git-auto-commit-action` from 4 to 5 ([#69](https://github.com/SAIC-iSmart-API/saic-java-client/pull/69))
 - Bump `org.apache.maven.plugins:maven-javadoc-plugin` from 3.5.0 to 3.6.0 ([#74](https://github.com/SAIC-iSmart-API/saic-java-client/pull/74))
 - Bump `jakarta.xml.bind:jakarta.xml.bind-api` from 4.0.0 to 4.0.1 ([#75](https://github.com/SAIC-iSmart-API/saic-java-client/pull/75))
+- Bump `org.testcontainers:testcontainers-bom` from 1.18.3 to 1.19.1 ([#68](https://github.com/SAIC-iSmart-API/saic-java-client/pull/68))
 
 ## [0.2.1] - 2023-06-03
 ### Fixed
