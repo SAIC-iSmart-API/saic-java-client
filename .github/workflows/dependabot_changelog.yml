@@ -18,17 +18,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          # Depending on your needs, you can use a token that will re-trigger workflows
-          # See https://github.com/stefanzweifel/git-auto-commit-action#commits-of-this-action-do-not-trigger-new-workflow-runs
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # This token will trigger workflow jobs on push
+          token: ${{ secrets.GIT_PUSH_TOKEN }}
 
       - uses: dangoslen/dependabot-changelog-helper@v3
         with:
           activationLabel: 'dependencies'
           changelogPath: './CHANGELOG.md'
 
-      # This step is required for committing the changes to your branch.
-      # See https://github.com/stefanzweifel/git-auto-commit-action#commits-of-this-action-do-not-trigger-new-workflow-runs
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Updated Changelog\n\n[dependabot skip]"
