@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `jakarta.xml.bind:jakarta.xml.bind-api` from 4.0.0 to 4.0.1 ([#75](https://github.com/SAIC-iSmart-API/saic-java-client/pull/75))
 - Bump `org.testcontainers:testcontainers-bom` from 1.18.3 to 1.19.1 ([#68](https://github.com/SAIC-iSmart-API/saic-java-client/pull/68))
 - Bump `org.graalvm.buildtools:native-maven-plugin` from 0.9.23 to 0.9.28 ([#76](https://github.com/SAIC-iSmart-API/saic-java-client/pull/76))
+- Bump `actions/checkout` from 3 to 4 ([#64](https://github.com/SAIC-iSmart-API/saic-java-client/pull/64))
 
 ## [0.2.1] - 2023-06-03
 ### Fixed
