@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- MQTT
+  - support changing remote A/C temperature via setting `climate/remoteTemperature`
 
 ### Dependencies
 - Bump `me.qoomon:maven-git-versioning-extension` from 9.6.5 to 9.6.6 ([#81](https://github.com/SAIC-iSmart-API/saic-java-client/pull/81))
@@ -20,7 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MQTT
   - support starting/stopping charging via setting `drivetrain/charging`
   - added topic `drivetrain/remainingChargingTime`
-  - support remoteTemperature via setting `climate/remoteTemperature`
 
 ### Changed
 - MQTT
@@ -31,7 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Handle fallback for SOC when charge status update fails
   - ensure that a changed systemd configuration is picked up
   - support blowingOnly mode for `remoteClimateState`
-  - support setting the `remoteTemperature` for A/C
 - API
   - Handle fallback for SOC when charge status update fails
 

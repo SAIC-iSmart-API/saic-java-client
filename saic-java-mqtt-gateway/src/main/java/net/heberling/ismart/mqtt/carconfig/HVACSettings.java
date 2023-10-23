@@ -6,7 +6,9 @@ public interface HVACSettings {
 
   Integer getMaxAllowedTemp();
 
-  int normalizeTemperature(Integer temp);
+  default int normalizeTemperature(Integer temp) {
+    return Math.min(Math.max(temp, getMinAllowedTemp()), getMaxAllowedTemp());
+  }
 
   byte mapTempToSaicApi(Integer temp);
 }

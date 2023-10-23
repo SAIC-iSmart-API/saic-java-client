@@ -13,11 +13,6 @@ public class ZS11MCEHVACSettings implements HVACSettings {
   }
 
   @Override
-  public int normalizeTemperature(Integer temp) {
-    return Math.min(Math.max(temp, getMinAllowedTemp()), getMaxAllowedTemp());
-  }
-
-  @Override
   public byte mapTempToSaicApi(Integer temp) {
     return (byte) normalizeTemperature(temp);
   }
