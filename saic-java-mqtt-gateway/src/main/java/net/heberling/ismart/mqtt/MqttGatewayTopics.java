@@ -6,6 +6,7 @@ public class MqttGatewayTopics {
   public static final String CLIMATE_EXTERIOR_TEMPERATURE = CLIMATE + "/exteriorTemperature";
   public static final String CLIMATE_INTERIOR_TEMPERATURE = CLIMATE + "/interiorTemperature";
   public static final String CLIMATE_REMOTE_CLIMATE_STATE = CLIMATE + "/remoteClimateState";
+  public static final String CLIMATE_REMOTE_TEMPERATURE = CLIMATE + "/remoteTemperature";
   public static final String DOORS = "doors";
   public static final String DOORS_BONNET = DOORS + "/bonnet";
   public static final String DOORS_BOOT = DOORS + "/boot";
