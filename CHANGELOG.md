@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `me.qoomon:maven-git-versioning-extension` from 9.6.5 to 9.6.6 ([#81](https://github.com/SAIC-iSmart-API/saic-java-client/pull/81))
+
 ## [0.3.0] - 2023-10-21
 ### Added
 - API
