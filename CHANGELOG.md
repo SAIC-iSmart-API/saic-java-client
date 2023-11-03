@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `com.diffplug.spotless:spotless-maven-plugin` from 2.38.0 to 2.40.0 ([#83](https://github.com/SAIC-iSmart-API/saic-java-client/pull/83))
 - Bump `org.graalvm.sdk:graal-sdk` from 23.0.1 to 23.1.1 ([#82](https://github.com/SAIC-iSmart-API/saic-java-client/pull/82))
 - Bump `ASzc/change-string-case-action` from 5 to 6 ([#85](https://github.com/SAIC-iSmart-API/saic-java-client/pull/85))
+- Bump `org.mockito:mockito-core` from 5.6.0 to 5.7.0 ([#86](https://github.com/SAIC-iSmart-API/saic-java-client/pull/86))
 
 ## [0.3.0] - 2023-10-21
 ### Added
