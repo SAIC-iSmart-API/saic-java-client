@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `org.mockito:mockito-core` from 5.6.0 to 5.7.0 ([#86](https://github.com/SAIC-iSmart-API/saic-java-client/pull/86))
 - Bump `org.mockito:mockito-junit-jupiter` from 5.6.0 to 5.7.0 ([#87](https://github.com/SAIC-iSmart-API/saic-java-client/pull/87))
 - Bump `org.junit.jupiter:junit-jupiter` from 5.10.0 to 5.10.1 ([#88](https://github.com/SAIC-iSmart-API/saic-java-client/pull/88))
+- Bump `org.apache.maven.plugins:maven-javadoc-plugin` from 3.6.0 to 3.6.2 ([#89](https://github.com/SAIC-iSmart-API/saic-java-client/pull/89))
 
 ## [0.3.0] - 2023-10-21
 ### Added
