@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `com.diffplug.spotless:spotless-maven-plugin` from 2.38.0 to 2.41.1 ([#83](https://github.com/SAIC-iSmart-API/saic-java-client/pull/83), [#103](https://github.com/SAIC-iSmart-API/saic-java-client/pull/103))
 - Bump `org.graalvm.sdk:graal-sdk` from 23.0.1 to 23.1.1 ([#82](https://github.com/SAIC-iSmart-API/saic-java-client/pull/82))
 - Bump `ASzc/change-string-case-action` from 5 to 6 ([#85](https://github.com/SAIC-iSmart-API/saic-java-client/pull/85))
-- Bump `org.mockito:mockito-core` from 5.6.0 to 5.7.0 ([#86](https://github.com/SAIC-iSmart-API/saic-java-client/pull/86))
+- Bump `org.mockito:mockito-core` from 5.6.0 to 5.8.0 ([#86](https://github.com/SAIC-iSmart-API/saic-java-client/pull/86), [#101](https://github.com/SAIC-iSmart-API/saic-java-client/pull/101))
 - Bump `org.mockito:mockito-junit-jupiter` from 5.6.0 to 5.8.0 ([#87](https://github.com/SAIC-iSmart-API/saic-java-client/pull/87), [#100](https://github.com/SAIC-iSmart-API/saic-java-client/pull/100))
 - Bump `org.junit.jupiter:junit-jupiter` from 5.10.0 to 5.10.1 ([#88](https://github.com/SAIC-iSmart-API/saic-java-client/pull/88))
 - Bump `org.apache.maven.plugins:maven-javadoc-plugin` from 3.6.0 to 3.6.3 ([#89](https://github.com/SAIC-iSmart-API/saic-java-client/pull/89), [#102](https://github.com/SAIC-iSmart-API/saic-java-client/pull/102))
