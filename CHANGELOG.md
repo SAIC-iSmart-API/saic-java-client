@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `com.fasterxml.jackson.dataformat:jackson-dataformat-toml` from 2.15.2 to 2.16.0 ([#79](https://github.com/SAIC-iSmart-API/saic-java-client/pull/79), [#91](https://github.com/SAIC-iSmart-API/saic-java-client/pull/91))
 - Bump `org.apache.maven.plugins:maven-shade-plugin` from 3.5.0 to 3.5.1 ([#77](https://github.com/SAIC-iSmart-API/saic-java-client/pull/77))
 - Bump `com.sun.xml.bind:jaxb-impl` from 2.3.8 to 2.3.9 ([#78](https://github.com/SAIC-iSmart-API/saic-java-client/pull/78))
-- Bump `org.apache.maven.plugins:maven-failsafe-plugin` from 3.1.2 to 3.2.2 ([#84](https://github.com/SAIC-iSmart-API/saic-java-client/pull/84), [#90](https://github.com/SAIC-iSmart-API/saic-java-client/pull/90))
+- Bump `org.apache.maven.plugins:maven-failsafe-plugin` from 3.1.2 to 3.2.5 ([#84](https://github.com/SAIC-iSmart-API/saic-java-client/pull/84), [#90](https://github.com/SAIC-iSmart-API/saic-java-client/pull/90), [#109](https://github.com/SAIC-iSmart-API/saic-java-client/pull/109))
 - Bump `com.diffplug.spotless:spotless-maven-plugin` from 2.38.0 to 2.41.1 ([#83](https://github.com/SAIC-iSmart-API/saic-java-client/pull/83), [#103](https://github.com/SAIC-iSmart-API/saic-java-client/pull/103))
 - Bump `org.graalvm.sdk:graal-sdk` from 23.0.1 to 23.1.1 ([#82](https://github.com/SAIC-iSmart-API/saic-java-client/pull/82))
 - Bump `ASzc/change-string-case-action` from 5 to 6 ([#85](https://github.com/SAIC-iSmart-API/saic-java-client/pull/85))
