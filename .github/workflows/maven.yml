@@ -65,7 +65,7 @@ jobs:
       - name: Extract release notes
         if: github.ref_name == 'main' || github.ref_type == 'tag'
         id: extract-release-notes
-        uses: ffurrer2/extract-release-notes@v1
+        uses: ffurrer2/extract-release-notes@v2
         with:
           prerelease: ${{ github.ref_type != 'tag' }}
       - name: Release
