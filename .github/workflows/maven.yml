@@ -70,7 +70,7 @@ jobs:
           prerelease: ${{ github.ref_type != 'tag' }}
       - name: Release
         if: github.ref_name == 'main' || github.ref_type == 'tag'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           body: ${{ steps.extract-release-notes.outputs.release_notes }}
           files: |
