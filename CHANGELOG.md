@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `me.qoomon:maven-git-versioning-extension` from 9.6.5 to 9.7.0 ([#81](https://github.com/SAIC-iSmart-API/saic-java-client/pull/81), [#108](https://github.com/SAIC-iSmart-API/saic-java-client/pull/108))
 - Bump `com.google.cloud.tools:jib-maven-plugin` from 3.3.2 to 3.4.0 ([#80](https://github.com/SAIC-iSmart-API/saic-java-client/pull/80))
 - Bump `com.fasterxml.jackson.dataformat:jackson-dataformat-toml` from 2.15.2 to 2.16.0 ([#79](https://github.com/SAIC-iSmart-API/saic-java-client/pull/79), [#91](https://github.com/SAIC-iSmart-API/saic-java-client/pull/91))
-- Bump `org.apache.maven.plugins:maven-shade-plugin` from 3.5.0 to 3.5.1 ([#77](https://github.com/SAIC-iSmart-API/saic-java-client/pull/77))
+- Bump `org.apache.maven.plugins:maven-shade-plugin` from 3.5.0 to 3.6.0 ([#77](https://github.com/SAIC-iSmart-API/saic-java-client/pull/77), [#128](https://github.com/SAIC-iSmart-API/saic-java-client/pull/128))
 - Bump `com.sun.xml.bind:jaxb-impl` from 2.3.8 to 2.3.9 ([#78](https://github.com/SAIC-iSmart-API/saic-java-client/pull/78))
 - Bump `org.apache.maven.plugins:maven-failsafe-plugin` from 3.1.2 to 3.3.1 ([#84](https://github.com/SAIC-iSmart-API/saic-java-client/pull/84), [#90](https://github.com/SAIC-iSmart-API/saic-java-client/pull/90), [#121](https://github.com/SAIC-iSmart-API/saic-java-client/pull/121))
 - Bump `com.diffplug.spotless:spotless-maven-plugin` from 2.38.0 to 2.43.0 ([#83](https://github.com/SAIC-iSmart-API/saic-java-client/pull/83), [#103](https://github.com/SAIC-iSmart-API/saic-java-client/pull/103), [#112](https://github.com/SAIC-iSmart-API/saic-java-client/pull/112))
