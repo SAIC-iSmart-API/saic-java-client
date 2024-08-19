@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `org.codehaus.mojo:build-helper-maven-plugin` from 3.4.0 to 3.5.0 ([#97](https://github.com/SAIC-iSmart-API/saic-java-client/pull/97))
 - Bump `s4u/maven-settings-action` from 2.8.0 to 3.0.0 ([#107](https://github.com/SAIC-iSmart-API/saic-java-client/pull/107))
 - Bump `org.graalvm.buildtools:native-maven-plugin` from 0.9.28 to 0.10.2 ([#126](https://github.com/SAIC-iSmart-API/saic-java-client/pull/126))
+- Bump `org.apache.maven.plugins:maven-jar-plugin` from 3.3.0 to 3.4.2 ([#124](https://github.com/SAIC-iSmart-API/saic-java-client/pull/124))
 
 ## [0.3.0] - 2023-10-21
 ### Added
