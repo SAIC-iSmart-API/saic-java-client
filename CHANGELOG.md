@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `org.mockito:mockito-junit-jupiter` from 5.6.0 to 5.12.0 ([#87](https://github.com/SAIC-iSmart-API/saic-java-client/pull/87), [#100](https://github.com/SAIC-iSmart-API/saic-java-client/pull/100), [#122](https://github.com/SAIC-iSmart-API/saic-java-client/pull/122))
 - Bump `org.junit.jupiter:junit-jupiter` from 5.10.0 to 5.10.1 ([#88](https://github.com/SAIC-iSmart-API/saic-java-client/pull/88))
 - Bump `org.apache.maven.plugins:maven-javadoc-plugin` from 3.6.0 to 3.6.3 ([#89](https://github.com/SAIC-iSmart-API/saic-java-client/pull/89), [#102](https://github.com/SAIC-iSmart-API/saic-java-client/pull/102))
-- Bump `org.testcontainers:testcontainers-bom` from 1.19.1 to 1.19.3 ([#92](https://github.com/SAIC-iSmart-API/saic-java-client/pull/92), [#95](https://github.com/SAIC-iSmart-API/saic-java-client/pull/95))
+- Bump `org.testcontainers:testcontainers-bom` from 1.19.1 to 1.20.1 ([#92](https://github.com/SAIC-iSmart-API/saic-java-client/pull/92), [#95](https://github.com/SAIC-iSmart-API/saic-java-client/pull/95), [#134](https://github.com/SAIC-iSmart-API/saic-java-client/pull/134))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.1.0 to 3.1.1 ([#93](https://github.com/SAIC-iSmart-API/saic-java-client/pull/93))
 - Bump `org.apache.httpcomponents.client5:httpclient5` from 5.2.1 to 5.3 ([#96](https://github.com/SAIC-iSmart-API/saic-java-client/pull/96), [#104](https://github.com/SAIC-iSmart-API/saic-java-client/pull/104))
 - Bump `org.codehaus.mojo:build-helper-maven-plugin` from 3.4.0 to 3.6.0 ([#97](https://github.com/SAIC-iSmart-API/saic-java-client/pull/97), [#136](https://github.com/SAIC-iSmart-API/saic-java-client/pull/136))
