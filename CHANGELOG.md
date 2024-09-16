@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Dependencies
 - Bump `me.qoomon:maven-git-versioning-extension` from 9.6.5 to 9.8.1 ([#81](https://github.com/SAIC-iSmart-API/saic-java-client/pull/81), [#108](https://github.com/SAIC-iSmart-API/saic-java-client/pull/108), [#130](https://github.com/SAIC-iSmart-API/saic-java-client/pull/130))
-- Bump `com.google.cloud.tools:jib-maven-plugin` from 3.3.2 to 3.4.0 ([#80](https://github.com/SAIC-iSmart-API/saic-java-client/pull/80))
+- Bump `com.google.cloud.tools:jib-maven-plugin` from 3.3.2 to 3.4.3 ([#80](https://github.com/SAIC-iSmart-API/saic-java-client/pull/80), [#135](https://github.com/SAIC-iSmart-API/saic-java-client/pull/135))
 - Bump `com.fasterxml.jackson.dataformat:jackson-dataformat-toml` from 2.15.2 to 2.16.0 ([#79](https://github.com/SAIC-iSmart-API/saic-java-client/pull/79), [#91](https://github.com/SAIC-iSmart-API/saic-java-client/pull/91))
 - Bump `org.apache.maven.plugins:maven-shade-plugin` from 3.5.0 to 3.6.0 ([#77](https://github.com/SAIC-iSmart-API/saic-java-client/pull/77), [#128](https://github.com/SAIC-iSmart-API/saic-java-client/pull/128))
 - Bump `com.sun.xml.bind:jaxb-impl` from 2.3.8 to 2.3.9 ([#78](https://github.com/SAIC-iSmart-API/saic-java-client/pull/78))
