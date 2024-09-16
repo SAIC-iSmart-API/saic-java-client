@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `org.apache.maven.plugins:maven-jar-plugin` from 3.3.0 to 3.4.2 ([#124](https://github.com/SAIC-iSmart-API/saic-java-client/pull/124))
 - Bump `org.apache.maven.plugins:maven-source-plugin` from 3.3.0 to 3.3.1 ([#131](https://github.com/SAIC-iSmart-API/saic-java-client/pull/131))
 - Bump `version.picocli` from 4.7.5 to 4.7.6 ([#132](https://github.com/SAIC-iSmart-API/saic-java-client/pull/132))
+- Bump `jakarta.xml.bind:jakarta.xml.bind-api` from 4.0.1 to 4.0.2 ([#137](https://github.com/SAIC-iSmart-API/saic-java-client/pull/137))
 
 ## [0.3.0] - 2023-10-21
 ### Added
