@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `org.apache.httpcomponents.client5:httpclient5` from 5.2.1 to 5.3 ([#96](https://github.com/SAIC-iSmart-API/saic-java-client/pull/96), [#104](https://github.com/SAIC-iSmart-API/saic-java-client/pull/104))
 - Bump `org.codehaus.mojo:build-helper-maven-plugin` from 3.4.0 to 3.6.0 ([#97](https://github.com/SAIC-iSmart-API/saic-java-client/pull/97), [#136](https://github.com/SAIC-iSmart-API/saic-java-client/pull/136))
 - Bump `s4u/maven-settings-action` from 2.8.0 to 3.0.0 ([#107](https://github.com/SAIC-iSmart-API/saic-java-client/pull/107))
-- Bump `org.graalvm.buildtools:native-maven-plugin` from 0.9.28 to 0.10.2 ([#126](https://github.com/SAIC-iSmart-API/saic-java-client/pull/126))
+- Bump `org.graalvm.buildtools:native-maven-plugin` from 0.9.28 to 0.10.3 ([#126](https://github.com/SAIC-iSmart-API/saic-java-client/pull/126), [#140](https://github.com/SAIC-iSmart-API/saic-java-client/pull/140))
 - Bump `org.apache.maven.plugins:maven-jar-plugin` from 3.3.0 to 3.4.2 ([#124](https://github.com/SAIC-iSmart-API/saic-java-client/pull/124))
 - Bump `org.apache.maven.plugins:maven-source-plugin` from 3.3.0 to 3.3.1 ([#131](https://github.com/SAIC-iSmart-API/saic-java-client/pull/131))
 - Bump `version.picocli` from 4.7.5 to 4.7.6 ([#132](https://github.com/SAIC-iSmart-API/saic-java-client/pull/132))
