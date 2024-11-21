@@ -39,8 +39,7 @@ MP_UserLoggingInResp ::= SEQUENCE
   tokenExpiration Timestamp OPTIONAL,
   vinList SEQUENCE SIZE(1..256) OF VinInfo OPTIONAL,
   userPhoto IA5String(SIZE(1..128)) OPTIONAL,
-  userName IA5String(SIZE(8..12)),
-  languageType LanguageType OPTIONAL
+  userName IA5String(SIZE(8..12))
 }
 APPUpgradeInfoReq ::= SEQUENCE
 {
