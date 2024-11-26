@@ -27,6 +27,8 @@
     <module>saic-java-client</module>
     <module>saic-java-api-gateway</module>
     <module>saic-java-api-cli</module>
+    <module>saic-java-rest-api</module>
+    <module>saic-java-rest-client</module>
     <module>saic-java-mqtt-gateway</module>
   </modules>
   <scm>
