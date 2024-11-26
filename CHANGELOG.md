@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- API
+  - Support for the new SAIC REST API ([#147](https://github.com/SAIC-iSmart-API/saic-java-client/pull/147))
 - MQTT
   - support changing remote A/C temperature via setting `climate/remoteTemperature`
 
