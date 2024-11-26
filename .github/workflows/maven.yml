@@ -40,12 +40,12 @@ jobs:
         uses: ASzc/change-string-case-action@v6
         with:
           string: ${{ github.repository_owner }}
-      - uses: s4u/maven-settings-action@v3.0.0
+      - uses: s4u/maven-settings-action@v3.1.0
         if: env.DOCKERHUB_USERNAME == null
         with:
           servers: '[{"id": "ossrh", "username": "${env.OSSRH_USERNAME}", "password": "${env.OSSRH_PASSWORD}"},
                      {"id": "ghcr.io", "username": "${env.GITHUB_ACTOR}", "password": "${env.GITHUB_TOKEN}"}]'
-      - uses: s4u/maven-settings-action@v3.0.0
+      - uses: s4u/maven-settings-action@v3.1.0
         if: env.DOCKERHUB_USERNAME != null
         with:
           servers: '[{"id": "ossrh", "username": "${env.OSSRH_USERNAME}", "password": "${env.OSSRH_PASSWORD}"},
