@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `org.vafer:jdeb` from 1.10 to 1.12 ([#146](https://github.com/SAIC-iSmart-API/saic-java-client/pull/146))
 - Bump `org.apache.maven.plugins:maven-deploy-plugin` from 3.1.1 to 3.1.3 ([#141](https://github.com/SAIC-iSmart-API/saic-java-client/pull/141))
 - Bump `org.awaitility:awaitility` from 4.2.0 to 4.2.2 ([#153](https://github.com/SAIC-iSmart-API/saic-java-client/pull/153))
+- Bump `org.eclipse.jetty:jetty-client` from 9.4.54.v20240208 to 12.0.16 ([#162](https://github.com/SAIC-iSmart-API/saic-java-client/pull/162))
 
 ## [0.3.0] - 2023-10-21
 ### Added
